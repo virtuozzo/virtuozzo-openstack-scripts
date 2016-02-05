@@ -143,9 +143,7 @@ LOGFILE=$DEST/logs/stack.sh.log
 SCREEN_LOGDIR=$DEST/logs/screen
 ENABLE_METADATA_NETWORK=True
 ENABLE_ISOLATED_METADATA=True
-
-IMAGE_URLS="http://repo.sw.ru/pub/vms/ploop/centos65-x32-hvm.hds, http://repo.sw.ru/pub/vms/ploop/centos7-exe.hds"
-TEMPEST_HTTP_IMAGE="http://repo.sw.ru/pub/vms/ploop/centos7-exe.hds"
+IMAGE_URLS="file://$DEST/centos7-exe.hds"
 
 _EOF
 set -x
@@ -157,6 +155,9 @@ MULTI_HOST=1
 _EOF
 set -x
 fi
+
+sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
+sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 
 if [[ ! -d ~stack/nova ]]; then
 
