@@ -31,8 +31,6 @@ echo "Using destination $DEST"
 
 create_stack_user $DEST
 pushd .
-[[ -d $DEST/src ]] || mkdir $DEST/src
-cd $DEST/src
 
 sudo su stack -c "~stack/devstack/unstack.sh" || true
 
@@ -190,6 +188,7 @@ sudo su stack -c "
 
 popd
 
-iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
+echo "Consider removing iptables rejecting rule if you want to use Horizon dashboard"
+echo "-= iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited =-"
 
 exit 0
