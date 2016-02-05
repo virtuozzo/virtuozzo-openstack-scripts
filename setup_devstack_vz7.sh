@@ -167,16 +167,7 @@ if [[ ! -d ~stack/nova ]]; then
 	apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova $NOVA_CHERRY_PICK_REFS
 fi
 
-yum install -y libvirt-daemon || true
-# fix libvirtd.conf
-sed -i s/"#log_level = 3"/"log_level = 2"/ /etc/libvirt/libvirtd.conf
-sed -i s/"#unix_sock_group = \"libvirt\""/"unix_sock_group = \"stack\""/ /etc/libvirt/libvirtd.conf
-sed -i s/"#unix_sock_ro_perms = \"0777\""/"unix_sock_ro_perms = \"0777\""/ /etc/libvirt/libvirtd.conf
-sed -i s/"#unix_sock_rw_perms = \"0770\""/"unix_sock_rw_perms = \"0770\""/ /etc/libvirt/libvirtd.conf
-sed -i s/"#unix_sock_dir = \"\/var\/run\/libvirt\""/"unix_sock_dir = \"\/var\/run\/libvirt\""/ /etc/libvirt/libvirtd.conf
-
-sed -i s/"#auth_unix_ro = \"none\""/"auth_unix_ro = \"none\""/ /etc/libvirt/libvirtd.conf
-sed -i s/"#auth_unix_rw = \"none\""/"auth_unix_rw = \"none\""/ /etc/libvirt/libvirtd.conf
+fixup_configs_for_libvirt
 
 #workaround beta1 problem with updated packages links
 yum clean all
