@@ -1,23 +1,21 @@
 diff --git a/functions-common b/functions-common
-index 1b01eef..dbd999a 100644
+index ff9bc0f..375ba7e 100644
 --- a/functions-common
 +++ b/functions-common
-@@ -338,8 +338,9 @@ function GetOSVersion {
-         # XenServer release 6.2.0-70446c (xenenterprise)
-         # Oracle Linux release 7
-         # CloudLinux release 7.1
-+        # Virtuozzo Linux release 7.2
-         os_CODENAME=""
--        for r in "Red Hat" CentOS Fedora XenServer CloudLinux; do
-+        for r in "Red Hat" CentOS Fedora XenServer CloudLinux Virtuozzo; do
-             os_VENDOR=$r
-             if [[ -n "`grep \"$r\" /etc/redhat-release`" ]]; then
-                 ver=`sed -e 's/^.* \([0-9].*\) (\(.*\)).*$/\1\|\2/' /etc/redhat-release`
-@@ -446,7 +447,8 @@ function is_fedora {
+@@ -387,6 +387,8 @@ function GetDistro {
+         DISTRO="xs${os_RELEASE%.*}"
+     elif [[ "$os_VENDOR" =~ (kvmibm) ]]; then
+         DISTRO="${os_VENDOR}${os_RELEASE::1}"
++    elif [[ "$os_VENDOR" =~ (Virtuozzo) ]]; then
++        DISTRO="vz$os_RELEASE"
+     else
+         die $LINENO "Unable to determine DISTRO"
+     fi
+@@ -420,7 +422,8 @@ function is_fedora {
 
      [ "$os_VENDOR" = "Fedora" ] || [ "$os_VENDOR" = "Red Hat" ] || \
          [ "$os_VENDOR" = "CentOS" ] || [ "$os_VENDOR" = "OracleLinux" ] || \
 -        [ "$os_VENDOR" = "CloudLinux" ] || [ "$os_VENDOR" = "kvmibm" ]
-+        [ "$os_VENDOR" = "CloudLinux" ] || [ "$os_VENDOR" = "kvmibm" ] ||
++        [ "$os_VENDOR" = "CloudLinux" ] || [ "$os_VENDOR" = "kvmibm" ] || \
 +        [ "$os_VENDOR" = "Virtuozzo" ]
  }
