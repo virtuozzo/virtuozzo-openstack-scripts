@@ -81,15 +81,6 @@ if [[ ! -d ~stack/devstack ]]; then
 	"
 fi
 
-if [[ -d ~stack/devstack ]]; then
-	sudo su stack -c "
-	cd ~
-	cd devstack
-	git reset --hard
-	patch -p1 -i $SCRIPT_HOME/virtuozzo_support_devstack.patch
-	"
-fi
-
 if [[ ! -d /var/log/nova ]]; then
 	sudo mkdir /var/log/nova
 	sudo chmod a+w /var/log/nova
