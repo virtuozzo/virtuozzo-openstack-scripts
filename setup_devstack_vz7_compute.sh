@@ -69,7 +69,7 @@ if [[ ! -d /var/run/mysqld/ ]]; then
         chmod 0777 /var/run/mysqld/
 fi
 
-yum install -y prl-disp-service || true
+yum install -y prl-disp-service prl-disk-tool || true
 
 if [[ ! -d ~stack/devstack ]]; then
 	sudo su stack -c "
