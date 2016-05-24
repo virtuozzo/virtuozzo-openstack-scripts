@@ -38,11 +38,6 @@ onboot_preparations () {
 
         fi
 
-	chmod u+w /sys/module/nf_conntrack/parameters/ip_conntrack_disable_ve0
-        echo 0 > /sys/module/nf_conntrack/parameters/ip_conntrack_disable_ve0
-	chmod u-w /sys/module/nf_conntrack/parameters/ip_conntrack_disable_ve0
-
-
         # devstack requires set hostname
         [ -n "$(hostname -f)" ] || hostname localhost
 
