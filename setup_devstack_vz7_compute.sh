@@ -53,7 +53,7 @@ yum install -y git patch || true
 yum install -y redhat-lsb-core || true
 yum install -y https://rdoproject.org/repos/rdo-release.rpm || true
 yum install -y http://fedora-mirror01.rbc.ru/pub/epel//epel-release-latest-7.noarch.rpm || true
-yum install -y mysql-connector-python || true
+yum install -y mysql-connector-python python-virtualenv || true
 yum install -y scsi-target-utils || true
 
 yum remove httpd httpd-tools mod_wsgi mariadb-galera-server -y || true
