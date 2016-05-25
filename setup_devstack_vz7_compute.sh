@@ -137,13 +137,7 @@ sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/
 sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 
 
-if [[ ! -d ~stack/nova ]]; then
-
-	source ~stack/devstack/functions
-	NOVA_CHERRY_PICK_REFS=refs/changes/57/182257/37,refs/changes/79/217679/14,refs/changes/36/260636/5,refs/changes/14/214314/5
-	git_clone https://github.com/openstack/nova.git ~stack/nova master
-	apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova $NOVA_CHERRY_PICK_REFS
-fi
+fix_nova
 
 fixup_configs_for_libvirt
 

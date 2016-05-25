@@ -150,16 +150,7 @@ fi
 sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
 sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 
-if [[ ! -d ~stack/nova ]]; then
-
-	su stack -c "source ~stack/devstack/functions && \
-        git_clone https://github.com/openstack/nova.git ~stack/nova master"
-
-        su stack -c "source functions.sh && \
-        apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova \
-        refs/changes/57/182257/37,refs/changes/79/217679/14,refs/changes/36/260636/5,refs/changes/14/214314/5,refs/changes/98/282398/3"
-fi
-
+fix_nova
 fixup_configs_for_libvirt
 
 #workaround beta1 problem with updated packages links

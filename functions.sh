@@ -75,6 +75,21 @@ function apply_cherry_pick {
         popd
 }
 
+function fix_nova {
+
+if [[ ! -d ~stack/nova ]]; then
+
+	su stack -c "source ~stack/devstack/functions && \
+        git_clone https://github.com/openstack/nova.git ~stack/nova master"
+
+        su stack -c "source functions.sh && \
+        apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova \
+        refs/changes/57/182257/37,refs/changes/79/217679/14,refs/changes/36/260636/5,refs/changes/14/214314/5,refs/changes/98/282398/3"
+
+fi
+
+}
+
 function kill_proc() {
         local name=$1
         id_list=`ps -ef | grep $name | grep -v grep | awk '{print $2}'`
