@@ -25,6 +25,7 @@ if [[ -z "$2" ]]; then
     usage
 fi
 
+MULTIHOST=${3:false}
 export DEST=${DEST:-/vz/stack}
 export SCRIPT_HOME=`pwd`
 echo "Using destination $DEST"
@@ -105,7 +106,7 @@ RABBIT_PASSWORD=$2
 ENABLED_SERVICES=key,rabbit,mysql,horizon,tempest
 
 # Enable Nova services
-ENABLED_SERVICES+=,n-api,n-crt,n-cpu,n-cond,n-sch,n-novnc,n-cauth
+ENABLED_SERVICES+=,n-api,n-crt,n-cond,n-sch,n-cauth,n-novnc
 
 # Enable Glance services
 ENABLED_SERVICES+=,g-api,g-reg
@@ -139,12 +140,25 @@ IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
 set -x
 
-if [[ $3 == true ]]; then
+if [[ $MULTIHOST == true ]]; then
 set +x
 cat >> ~stack/devstack/local.conf << _EOF
-MULTI_HOST=1
+
+MULTI_HOST=True
 _EOF
 set -x
+
+else
+
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+
+# Enable Nova compute service
+ENABLED_SERVICES+=,n-cpu
+
+_EOF
+set -x
+
 fi
 
 sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
