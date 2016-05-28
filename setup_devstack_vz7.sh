@@ -54,14 +54,8 @@ yum install -y git patch || true
 yum install -y redhat-lsb-core || true
 yum install -y https://rdoproject.org/repos/rdo-release.rpm || true
 yum install -y http://fedora-mirror01.rbc.ru/pub/epel//epel-release-latest-7.noarch.rpm || true
-yum install -y mysql-connector-python python-virtualenv || true
+yum install -y mysql-connector-python || true
 yum install -y scsi-target-utils || true
-
-yum remove httpd httpd-tools mod_wsgi mariadb-galera-server -y || true
-# clear conflicting with horizon http configuration
-rm -rf /etc/httpd/
-
-yum install -y httpd || true
 
 service mysqld stop || true
 rm -rf /var/lib/mysql/mysql.sock || true
@@ -92,7 +86,6 @@ set +x
 cat > ~stack/devstack/local.conf << _EOF
 
 [[local|localrc]]
-FORCE=yes
 HOST_IP=$1
 MYSQL_PASSWORD=$2
 SERVICE_TOKEN=$2
