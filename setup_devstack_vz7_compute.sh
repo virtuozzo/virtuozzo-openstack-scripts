@@ -126,9 +126,6 @@ IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
 set -x
 
-sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
-sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
-
 
 fix_nova
 

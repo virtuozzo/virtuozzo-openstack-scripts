@@ -46,9 +46,6 @@ if [[ $NEED_REBOOT == true ]]; then
     exit 1
 fi
 
-#workaround problem with updated packages links
-yum clean all
-
 yum install -y screen || true
 yum install -y git patch || true
 yum install -y redhat-lsb-core || true
@@ -159,9 +156,6 @@ sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 
 fix_nova
 fixup_configs_for_libvirt
-
-#workaround beta1 problem with updated packages links
-yum clean all
 
 sudo su stack -c "
 	cd ~/devstack
