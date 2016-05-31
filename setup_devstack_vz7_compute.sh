@@ -131,11 +131,12 @@ fix_nova
 
 fixup_configs_for_libvirt
 
-sudo su stack -c "
-	cd ~/devstack
-        ./unstack.sh
-        ./stack.sh
-"
+sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
+
+pip uninstall -y psutil || true
+yum reinstall -y python-psutil
+systemctl reset-failed
+systemctl restart vcmmd.service
 
 popd
 
