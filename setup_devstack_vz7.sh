@@ -5,11 +5,12 @@ source functions.sh
 usage(){
     set +x
     echo "Usage:"
-    echo "     `pwd`/setup_devstack_for_vz7.sh HOST_IP PASSWORD [MULTI_HOST]"
+    echo "     `pwd`/setup_devstack_for_vz7.sh HOST_IP PASSWORD [MODE={ALL|CONTROLLER|{COMPUTE CONTROLLER_IP}}]"
     echo "Where:"
     echo "     HOST_IP - network interface IP address to be used by OpenStack services"
     echo "     PASSWORD - your password for OpenStack services"
-    echo "     MULTI_HOST - true if you want multinode configuration"
+    echo "     MODE - [ALL|COMPUTE|CONTROLLER] ALL is default value"
+    echo "     CONTROLLER_IP - IP address of CONTROLLER host, required parameter if MODE=COMPUTE"
     exit 1
 }
 
@@ -25,12 +26,34 @@ if [[ -z "$2" ]]; then
     usage
 fi
 
-MULTIHOST=${3:false}
+MODE=${3:-"ALL"}
+
+if [[ "$MODE" != "COMPUTE" ]] && [[ "$MODE" != "CONTROLLER" ]] && [[ "$MODE" != "ALL" ]]; then
+    usage
+fi
+
+if [[ "$MODE" == "COMPUTE" ]]; then
+
+	if [[ -z "$4" ]]; then
+            echo "Missing CONTROLLER IP address parameter"
+	    usage
+	fi
+
+	CONTROLLER_IP=$4
+fi
+
 export DEST=${DEST:-/vz/stack}
+
 export SCRIPT_HOME=`pwd`
 echo "Using destination $DEST"
 
 create_stack_user $DEST
+
+if [[ ! -d /opt/stack ]] && [[ "$DEST" != "/opt/stack" ]]; then
+	ln -s $DEST /opt/stack
+fi
+chmod 700 $DEST
+
 pushd .
 
 sudo su stack -c "~stack/devstack/unstack.sh" || true
@@ -78,9 +101,10 @@ if [[ ! -d /var/log/nova ]]; then
 	sudo chmod a+w /var/log/nova
 fi
 
-set +x
+if [[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]]; then
 
-cat > ~stack/devstack/local.conf << _EOF
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
 
 [[local|localrc]]
 HOST_IP=$1
@@ -125,34 +149,79 @@ LOGFILE=$DEST/logs/stack.sh.log
 SCREEN_LOGDIR=$DEST/logs/screen
 ENABLE_METADATA_NETWORK=True
 ENABLE_ISOLATED_METADATA=True
-IMAGE_URLS="file://$DEST/centos7-exe.hds"
 
+IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
 set -x
 
-if [[ $MULTIHOST == true ]]; then
+sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
+sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
+fi
+
+
+if [[ "$MODE" == "CONTROLLER" ]]; then
 set +x
 cat >> ~stack/devstack/local.conf << _EOF
+MULTI_HOST=True
+_EOF
+set -x
+fi
+
+
+if [[ "$MODE" == "COMPUTE" ]]; then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+
+HOST_IP=$1
+MYSQL_PASSWORD=$2
+SERVICE_TOKEN=$2
+SERVICE_PASSWORD=$2
+ADMIN_PASSWORD=$2
+LIBVIRT_TYPE=parallels
+RABBIT_PASSWORD=$2
+MULTI_HOST=True
+SERVICE_HOST=$CONTROLLER_IP
+MYSQL_HOST=$CONTROLLER_IP
+RABBIT_HOST=$CONTROLLER_IP
+GLANCE_HOSTPORT=$CONTROLLER_IP:9292
+NOVA_VNC_ENABLED=True
+NOVNCPROXY_URL="http://$CONTROLLER_IP:6080/vnc_auto.html"
+VNCSERVER_LISTEN=$1
+VNCSERVER_PROXYCLIENT_ADDRESS=$1
+
+ENABLED_SERVICES=n-cpu,rabbit,neutron,q-agt
+LIBVIRT_FIREWALL_DRIVER=nova.virt.firewall.NoopFirewallDriver
+
+# Destination path for installation
+DEST=$DEST
+
+# Destination for working data
+DATA_DIR=${DEST}/data
+
+# Destination for status files
+SERVICE_DIR=${DEST}/status
+
+LOG_COLOR=False
+LOGDAYS=3
+LOGFILE=$DEST/logs/stack.sh.log
+SCREEN_LOGDIR=$DEST/logs/screen
+ENABLE_METADATA_NETWORK=True
+ENABLE_ISOLATED_METADATA=True
 
 MULTI_HOST=True
 _EOF
 set -x
-
-else
-
-set +x
-cat >> ~stack/devstack/local.conf << _EOF
-
-# Enable Nova compute service
-ENABLED_SERVICES+=,n-cpu
-
-_EOF
-set -x
-
 fi
 
-sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz"
-sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
+
+if [[ "$MODE" == "ALL" ]]; then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+# Enable Nova compute service
+ENABLED_SERVICES+=,n-cpu
+_EOF
+set -x
+fi
 
 fix_nova
 fixup_configs_for_libvirt
