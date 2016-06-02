@@ -18,6 +18,7 @@ usage(){
 # start
 
 if [[ $EUID -ne 0 ]]; then
+    set +x
     echo "This script should be run as root"
     exit 1
 fi
@@ -35,6 +36,7 @@ fi
 if [[ "$MODE" == "COMPUTE" ]]; then
 
 	if [[ -z "$4" ]]; then
+            set +x
             echo "Missing CONTROLLER IP address parameter"
 	    usage
 	fi
@@ -235,6 +237,7 @@ systemctl restart vcmmd.service
 
 popd
 
+set +x
 echo "Consider removing iptables rejecting rule if you want to use Horizon dashboard"
 echo "-= iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited =-"
 
