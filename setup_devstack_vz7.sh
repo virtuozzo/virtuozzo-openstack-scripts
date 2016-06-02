@@ -44,6 +44,11 @@ if [[ "$MODE" == "COMPUTE" ]]; then
 	CONTROLLER_IP=$4
 fi
 
+if [[ "$MODE" == "COMPUTE" ]] || [[ "$MODE" == "ALL" ]]; then
+
+	cleanup_compute
+fi
+
 export DEST=${DEST:-/vz/stack}
 
 export SCRIPT_HOME=`pwd`

@@ -118,4 +118,12 @@ sed -i s/"#auth_unix_rw = \"none\""/"auth_unix_rw = \"none\""/ /etc/libvirt/libv
 
 }
 
+function cleanup_compute(){
 
+	# cleanup existing OpenStack instances
+	# stop running
+	prlctl list | grep instance- | awk '{ system("prlctl stop " $1 " --kill")} '
+
+	# destroy destroy them
+	prlctl list -a | grep instance- | awk '{ system("prlctl destroy " $1)} '
+}
