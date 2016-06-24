@@ -111,7 +111,7 @@ fi
 if [[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]]; then
 
 set +x
-cat >> ~stack/devstack/local.conf << _EOF
+cat > ~stack/devstack/local.conf << _EOF
 
 [[local|localrc]]
 HOST_IP=$1
@@ -177,8 +177,9 @@ fi
 
 if [[ "$MODE" == "COMPUTE" ]]; then
 set +x
-cat >> ~stack/devstack/local.conf << _EOF
+cat > ~stack/devstack/local.conf << _EOF
 
+[[local|localrc]]
 HOST_IP=$1
 MYSQL_PASSWORD=$2
 SERVICE_TOKEN=$2
