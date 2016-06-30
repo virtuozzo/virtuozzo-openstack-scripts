@@ -84,7 +84,7 @@ if [[ ! -d ~stack/nova ]]; then
 
         su stack -c "source functions.sh && \
         apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova \
-        refs/changes/57/182257/55,refs/changes/79/217679/14,refs/changes/14/214314/5,refs/changes/98/282398/3"
+        refs/changes/79/217679/21,refs/changes/14/214314/5,refs/changes/98/282398/3"
 
 fi
 
