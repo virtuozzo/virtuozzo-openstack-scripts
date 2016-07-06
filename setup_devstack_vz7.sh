@@ -180,6 +180,16 @@ sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/
 sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 fi
 
+# connect br0 with br-ex if provider network should be configured
+if [[ "$USE_PROVIDERNET" == "True" ]]; then
+ip link add veth-public0 type veth peer name veth-public1
+#ip l set dev br-ex up
+ip l set dev veth-public0 up
+ip l set dev veth-public1 up
+ovs-vsctl add-port br-ex veth-public0
+brctl addif br0 veth-public1
+fi
+
 
 if [[ "$MODE" == "CONTROLLER" ]]; then
 set +x
