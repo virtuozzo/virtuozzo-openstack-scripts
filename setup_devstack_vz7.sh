@@ -5,7 +5,12 @@ source functions.sh
 usage(){
     set +x
     echo "Usage:"
-    echo "     `pwd`/setup_devstack_for_vz7.sh HOST_IP PASSWORD [MODE={ALL|CONTROLLER|{COMPUTE CONTROLLER_IP}}]"
+    echo "     source vzrc [--host_ip HOST] [--password PASSWORD]"
+    echo "            [--use_provider_network]  [--fixed_range FIXED_RANGE]"
+    echo "            [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]"
+    echo "            [--gateway PUBLIC_GATEWAY] [--mode MODE]"
+    echo "            [--controller_host CONTROLLER_HOST] [--dest DEST]"
+    echo "     `pwd`/setup_devstack_for_vz7.sh"
     echo "Where:"
     echo "     HOST_IP - network interface IP address to be used by OpenStack services"
     echo "     PASSWORD - your password for OpenStack services"
