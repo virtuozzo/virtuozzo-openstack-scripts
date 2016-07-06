@@ -185,7 +185,8 @@ sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 fi
 
 # connect br0 with br-ex if provider network should be configured
-if [[ "$USE_PROVIDERNET" == "True" ]]; then
+VETH_CONFIGURED=$(ip link | grep -q veth-public0)
+if [[ "$USE_PROVIDERNET" == "True" &&  $VETH_CONFIGURED ]]; then
 ip link add veth-public0 type veth peer name veth-public1
 #ip l set dev br-ex up
 ip l set dev veth-public0 up
