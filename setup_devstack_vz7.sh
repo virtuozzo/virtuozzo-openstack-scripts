@@ -254,7 +254,7 @@ systemctl restart vcmmd.service
 popd
 
 set +x
-echo "Consider removing iptables rejecting rule if you want to use Horizon dashboard"
-echo "-= iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited =-"
+echo "ATTENTION: we are removing iptables rejecting rule!!!"
+iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
 
 exit 0
