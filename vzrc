@@ -4,7 +4,7 @@
 #             [--fixed_range FIXED_RANGE]
 #             [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]
 #             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
-#             [--mode MODE]
+#             [--mode MODE] [--vzstorage CLUSTER_NAME]
 #             [--controller_host CONTROLLER_HOST] [--dest DEST]
 
 HOST_IP=
@@ -18,7 +18,8 @@ USE_PROVIDERNET=
 MODE=
 CONTROLLER_IP=
 DEST=
-
+SETUP_VZSTORAGE=
+VZSTORAGE_CLUSTER_NAME=
 
 while [[ $# -gt 1 ]]
 do
@@ -69,6 +70,10 @@ case $key in
     DEST="$2"
     shift
     ;;
+    --vzstorage)
+    VZSTORAGE_CLUSTER_NAME="$2"
+    shift
+    ;;
     *)
     # unknown option
     echo "unknown option $1"
@@ -89,6 +94,12 @@ export MODE=${MODE:-ALL}
 export CONTROLLER_IP
 export DEST=${DEST:-/vz/stack}
 
+if [[ "$VZSTORAGE_CLUSTER_NAME" != "" ]]; then
+SETUP_VZSTORAGE=True
+fi
+
+export SETUP_VZSTORAGE=${SETUP_VZSTORAGE:-False}
+export VZSTORAGE_CLUSTER_NAME
 
 echo "Host IP address: " $HOST_IP
 echo "Password: " $PASSWORD
@@ -101,4 +112,6 @@ echo "Public gateway: " $PUBLIC_GATEWAY
 echo "Mode: " $MODE
 echo "Controller host: " $CONTROLLER_HOST
 echo "Stack user home: " $DEST
+echo "Using vzstorage: " $SETUP_VZSTORAGE
+echo "vzstorage cluster name: " $VZSTORAGE_CLUSTER_NAME
 

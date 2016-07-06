@@ -172,6 +172,10 @@ PUBLIC_BRIDGE=br-ex
 OVS_BRIDGE_MAPPINGS=public:br-ex
 PHYSICAL_NETWORK=public
 
+enable_plugin devstack-plugin-vzstorage https://github.com/eantyshev/devstack-plugin-vzstorage
+CONFIGURE_VZSTORAGE_CINDER=$SETUP_VZSTORAGE
+VZSTORAGE_CLUSTER_NAME=$VZSTORAGE_CLUSTER_NAME
+
 IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
 set -x
