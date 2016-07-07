@@ -176,6 +176,7 @@ PHYSICAL_NETWORK=public
 enable_plugin devstack-plugin-vzstorage https://github.com/eantyshev/devstack-plugin-vzstorage
 CONFIGURE_VZSTORAGE_CINDER=$SETUP_VZSTORAGE
 VZSTORAGE_CLUSTER_NAME=$VZSTORAGE_CLUSTER_NAME
+VZSTORAGE_EXISTING_CLUSTER=$VZSTORAGE_EXISTING_CLUSTER
 
 IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
