@@ -173,7 +173,7 @@ PUBLIC_BRIDGE=br-ex
 OVS_BRIDGE_MAPPINGS=public:br-ex
 PHYSICAL_NETWORK=public
 
-enable_plugin devstack-plugin-vzstorage https://github.com/eantyshev/devstack-plugin-vzstorage
+enable_plugin devstack-plugin-vzstorage https://github.com/virtuozzo/devstack-plugin-vzstorage
 CONFIGURE_VZSTORAGE_CINDER=$SETUP_VZSTORAGE
 VZSTORAGE_CLUSTER_NAME=$VZSTORAGE_CLUSTER_NAME
 VZSTORAGE_EXISTING_CLUSTER=$VZSTORAGE_EXISTING_CLUSTER
