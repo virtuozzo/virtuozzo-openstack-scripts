@@ -185,17 +185,6 @@ sudo su stack -c "cd ~ && wget -N http://updates.virtuozzo.com/server/virtuozzo/
 sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 fi
 
-# connect br0 with br-ex if provider network should be configured
-VETH_CONFIGURED=$(ip link | grep -q veth-public0)
-if [[ "$USE_PROVIDERNET" == "True" &&  $VETH_CONFIGURED ]]; then
-ip link add veth-public0 type veth peer name veth-public1
-#ip l set dev br-ex up
-ip l set dev veth-public0 up
-ip l set dev veth-public1 up
-ovs-vsctl add-port br-ex veth-public0
-brctl addif br0 veth-public1
-fi
-
 
 if [[ "$MODE" == "CONTROLLER" ]]; then
 set +x
@@ -266,6 +255,20 @@ fix_nova
 fixup_configs_for_libvirt
 
 sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
+
+
+# connect br0 with br-ex if provider network should be configured
+set +e
+VETH_CONFIGURED=$(ip link | grep -q veth-public0)
+set -e
+if [[ "$USE_PROVIDERNET" == "True" &&  "$VETH_CONFIGURED" == "" ]]; then
+ip link add veth-public0 type veth peer name veth-public1
+#ip l set dev br-ex up
+ip l set dev veth-public0 up
+ip l set dev veth-public1 up
+ovs-vsctl add-port br-ex veth-public0
+brctl addif br0 veth-public1
+fi
 
 pip uninstall -y psutil || true
 yum reinstall -y python-psutil
