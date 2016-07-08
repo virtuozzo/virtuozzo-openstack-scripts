@@ -116,7 +116,7 @@ echo "Public range: " $FLOATING_RANGE
 echo "Public pool: " $FLOATING_POOL
 echo "Public gateway: " $PUBLIC_GATEWAY
 echo "Mode: " $MODE
-echo "Controller host: " $CONTROLLER_HOST
+echo "Controller host: " $CONTROLLER_IP
 echo "Stack user home: " $DEST
 echo "Using vzstorage: " $SETUP_VZSTORAGE
 echo "vzstorage cluster name: " $VZSTORAGE_CLUSTER_NAME
