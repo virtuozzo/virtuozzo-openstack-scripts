@@ -19,7 +19,7 @@ Where:
      --use_provider_network TRUE|FALSE - true option will configure flat public network, false will configure isolated public network. Use flat if you want to give instances access to your network.
      FIXED_RANGE - network range for tenant network
      FLOATING_RANGE - network range for public network
-     FLOATING_POOL - network pool for public network to distribute floating IPs to the instances. Example: start=10.24.41.51,end=10.24.41.99
+     FLOATING_POOL - network pool for public network to distribute floating IPs to the instances. Example: "start=10.24.41.51,end=10.24.41.99"
      PUBLIC_GATEWAY - default gateway for public network
      GATEWAY - default gateway for tenant network
      CLUSTER_NAME - name of your Virtuozzo Storage cluster
