@@ -8,7 +8,7 @@ Usage:
             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
             [--vzstorage CLUSTER_NAME] [--mode MODE]
             [--controller_host CONTROLLER_HOST] [--dest DEST]
-     $ ./setup_devstack_for_vz7.sh
+     $ ./setup_devstack_vz7.sh
 Where:
      HOST_IP - network interface IP address to be used by OpenStack services
      PASSWORD - your password for OpenStack services
