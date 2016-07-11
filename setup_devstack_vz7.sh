@@ -29,8 +29,13 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ -z "$HOST_IP" ]]; then
+if [[ -z "$HOST_IP" || -z "$MODE" || -z "$USE_PROVIDERNET" ]]; then
     usage
+fi
+
+MODE=${MODE^^}
+if [[ "${USE_PROVIDERNET,,}" == "true" ]]; then
+	USE_PROVIDERNET=True
 fi
 
 if [[ "$MODE" != "COMPUTE" ]] && [[ "$MODE" != "CONTROLLER" ]] && [[ "$MODE" != "ALL" ]]; then
@@ -50,7 +55,6 @@ if [[ "$MODE" == "COMPUTE" ]] || [[ "$MODE" == "ALL" ]]; then
 
 	cleanup_compute
 fi
-
 export DEST=${DEST:-/vz/stack}
 
 export SCRIPT_HOME=`pwd`
