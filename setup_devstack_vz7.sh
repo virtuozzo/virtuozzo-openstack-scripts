@@ -177,10 +177,6 @@ PUBLIC_BRIDGE=br-ex
 OVS_BRIDGE_MAPPINGS=public:br-ex
 PHYSICAL_NETWORK=public
 
-enable_plugin devstack-plugin-vzstorage https://github.com/virtuozzo/devstack-plugin-vzstorage
-CONFIGURE_VZSTORAGE_CINDER=$SETUP_VZSTORAGE
-VZSTORAGE_CLUSTER_NAME=$VZSTORAGE_CLUSTER_NAME
-VZSTORAGE_EXISTING_CLUSTER=$VZSTORAGE_EXISTING_CLUSTER
 
 IMAGE_URLS="file://$DEST/centos7-exe.hds"
 _EOF
@@ -199,6 +195,16 @@ _EOF
 set -x
 fi
 
+if [[ "${SETUP_VZSTORAGE,,}" == "true" ]] && ( [[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]] ); then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+enable_plugin devstack-plugin-vzstorage https://github.com/virtuozzo/devstack-plugin-vzstorage
+CONFIGURE_VZSTORAGE_CINDER=$SETUP_VZSTORAGE
+VZSTORAGE_CLUSTER_NAME=$VZSTORAGE_CLUSTER_NAME
+VZSTORAGE_EXISTING_CLUSTER=$VZSTORAGE_EXISTING_CLUSTER
+_EOF
+set -x
+fi
 
 if [[ "$MODE" == "COMPUTE" ]]; then
 set +x
