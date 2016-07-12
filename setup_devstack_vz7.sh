@@ -247,6 +247,9 @@ SCREEN_LOGDIR=$DEST/logs/screen
 ENABLE_METADATA_NETWORK=True
 ENABLE_ISOLATED_METADATA=True
 
+#Open vSwitch provider networking configuration
+OVS_BRIDGE_MAPPINGS=public:br-ex
+
 MULTI_HOST=True
 _EOF
 set -x
@@ -273,12 +276,18 @@ set +e
 VETH_CONFIGURED=$(ip link | grep -q veth-public0)
 set -e
 if [[ "$USE_PROVIDERNET" == "True" &&  "$VETH_CONFIGURED" == "" ]]; then
+
 ip link add veth-public0 type veth peer name veth-public1
-#ip l set dev br-ex up
-ip l set dev veth-public0 up
-ip l set dev veth-public1 up
+
+if [[ "$MODE" == "COMPUTE" ]]; then
+	ovs-vsctl add-br br-ex || true
+fi
+
+#ip l set dev veth-public0 up
+#ip l set dev veth-public1 up
 ovs-vsctl add-port br-ex veth-public0
 brctl addif br0 veth-public1
+
 fi
 
 pip uninstall -y psutil || true
