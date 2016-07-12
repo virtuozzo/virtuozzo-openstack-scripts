@@ -206,6 +206,15 @@ _EOF
 set -x
 fi
 
+
+if [[ "$MODE" == "COMPUTE" ]]; then
+        EXTERNAL_BRIDGE=br-external
+        ovs-vsctl add-br $EXTERNAL_BRIDGE || true
+else
+        EXTERNAL_BRIDGE=br-ex
+fi
+
+
 if [[ "$MODE" == "COMPUTE" ]]; then
 set +x
 cat > ~stack/devstack/local.conf << _EOF
@@ -248,7 +257,7 @@ ENABLE_METADATA_NETWORK=True
 ENABLE_ISOLATED_METADATA=True
 
 #Open vSwitch provider networking configuration
-OVS_BRIDGE_MAPPINGS=public:br-ex
+OVS_BRIDGE_MAPPINGS=public:$EXTERNAL_BRIDGE
 
 MULTI_HOST=True
 _EOF
@@ -270,23 +279,15 @@ fixup_configs_for_libvirt
 
 sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
 
+# connect br0 with $EXTERNAL_BRIDGE if provider network should be configured
+if [[ "$USE_PROVIDERNET" == "True" ]]; then
 
-# connect br0 with br-ex if provider network should be configured
-set +e
-VETH_CONFIGURED=$(ip link | grep -q veth-public0)
-set -e
-if [[ "$USE_PROVIDERNET" == "True" &&  "$VETH_CONFIGURED" == "" ]]; then
+ip link add veth-public0 type veth peer name veth-public1 || true
 
-ip link add veth-public0 type veth peer name veth-public1
-
-if [[ "$MODE" == "COMPUTE" ]]; then
-	ovs-vsctl add-br br-ex || true
-fi
-
-#ip l set dev veth-public0 up
-#ip l set dev veth-public1 up
-ovs-vsctl add-port br-ex veth-public0
-brctl addif br0 veth-public1
+ip l set dev veth-public0 up || true
+ip l set dev veth-public1 up || true
+ovs-vsctl add-port $EXTERNAL_BRIDGE veth-public0 || true
+brctl addif br0 veth-public1 || true
 
 fi
 
