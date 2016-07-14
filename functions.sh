@@ -75,17 +75,20 @@ function apply_cherry_pick {
         popd
 }
 
-function fix_nova {
 
-if [[ ! -d ~stack/nova ]]; then
+function fix_openstack_project {
+
+local project=$1
+local changes=$2
+local repo=https://review.openstack.org/openstack/$project
+
+if [[ ! -d ~stack/$project ]]; then
 
 	su stack -c "source ~stack/devstack/functions && \
-        git_clone https://github.com/openstack/nova.git ~stack/nova master"
+        git_clone $repo ~stack/$project master"
 
         su stack -c "source functions.sh && \
-        apply_cherry_pick https://review.openstack.org/openstack/nova ~stack/nova \
-        refs/changes/79/217679/21,refs/changes/14/214314/5,refs/changes/98/282398/3"
-
+        apply_cherry_pick $repo ~stack/$project $changes"
 fi
 
 }
