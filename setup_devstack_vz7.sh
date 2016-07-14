@@ -6,6 +6,7 @@ usage(){
     set +x
     echo "Usage:"
     echo "     source vzrc [--host_ip HOST] [--password PASSWORD]"
+    echo "            [--virt_type vz|qemu|kvm]"
     echo "            [--use_provider_network]  [--fixed_range FIXED_RANGE]"
     echo "            [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]"
     echo "            [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]"
@@ -29,13 +30,22 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ -z "$HOST_IP" || -z "$MODE" || -z "$USE_PROVIDERNET" ]]; then
+if [[ -z "$HOST_IP" || -z "$MODE" || -z "$USE_PROVIDERNET" || -z "$VIRT_TYPE" ]]; then
     usage
 fi
 
 MODE=${MODE^^}
+
 if [[ "${USE_PROVIDERNET,,}" == "true" ]]; then
 	USE_PROVIDERNET=True
+fi
+
+VIRT_TYPE=${VIRT_TYPE,,}
+if [[ "$VIRT_TYPE" == "vz" ]]; then
+	VIRT_TYPE=parallels
+fi
+if [[ "$VIRT_TYPE" != "parallels" &&  "$VIRT_TYPE" != "qemu" &&  "$VIRT_TYPE" != "kvm" ]]; then
+	usage
 fi
 
 if [[ "$MODE" != "COMPUTE" ]] && [[ "$MODE" != "CONTROLLER" ]] && [[ "$MODE" != "ALL" ]]; then
@@ -125,7 +135,7 @@ MYSQL_PASSWORD=$PASSWORD
 SERVICE_TOKEN=$PASSWORD
 SERVICE_PASSWORD=$PASSWORD
 ADMIN_PASSWORD=$PASSWORD
-LIBVIRT_TYPE=parallels
+LIBVIRT_TYPE=$VIRT_TYPE
 RABBIT_PASSWORD=$PASSWORD
 
 
@@ -225,7 +235,7 @@ MYSQL_PASSWORD=$PASSWORD
 SERVICE_TOKEN=$PASSWORD
 SERVICE_PASSWORD=$PASSWORD
 ADMIN_PASSWORD=$PASSWORD
-LIBVIRT_TYPE=parallels
+LIBVIRT_TYPE=$VIRT_TYPE
 RABBIT_PASSWORD=$PASSWORD
 MULTI_HOST=True
 SERVICE_HOST=$CONTROLLER_IP
@@ -258,6 +268,9 @@ ENABLE_ISOLATED_METADATA=True
 
 #Open vSwitch provider networking configuration
 OVS_BRIDGE_MAPPINGS=public:$EXTERNAL_BRIDGE
+OVS_PHYSICAL_BRIDGE=$EXTERNAL_BRIDGE
+PUBLIC_BRIDGE=$EXTERNAL_BRIDGE
+PHYSICAL_NETWORK=public
 
 MULTI_HOST=True
 _EOF

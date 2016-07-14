@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# source vzrc [--host_ip HOST] [--password PASSWORD] [--use_provider_network True/False]
-#             [--fixed_range FIXED_RANGE]
+# source vzrc [--host_ip HOST] [--password PASSWORD] [--use_provider_network true|false]
+#             [--virt_type vz|qemu|kvm] [--fixed_range FIXED_RANGE]
 #             [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]
 #             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
-#             [--mode MODE] [--vzstorage CLUSTER_NAME] [--existing_cluster True/False]
-#             [--controller_host CONTROLLER_HOST] [--dest DEST]
+#             [--mode MODE] [--vzstorage CLUSTER_NAME] [--existing_cluster true|false]
+#             [--controller CONTROLLER_HOST] [--dest DEST]
 
 HOST_IP=
 PASSWORD=
@@ -21,6 +21,7 @@ DEST=
 SETUP_VZSTORAGE=
 VZSTORAGE_CLUSTER_NAME=
 VZSTORAGE_EXISTING_CLUSTER=
+VIRT_TYPE=
 
 while [[ $# -gt 1 ]]
 do
@@ -79,6 +80,10 @@ case $key in
     VZSTORAGE_EXISTING_CLUSTER="$2"
     shift
     ;;
+    --virt_type)
+    VIRT_TYPE="$2"
+    shift
+    ;;
     *)
     # unknown option
     echo "unknown option $1"
@@ -88,6 +93,7 @@ shift # past argument or value
 done
 
 export HOST_IP
+export VIRT_TYPE=${VIRT_TYPE:-vz}
 export PASSWORD=${PASSWORD:-1q2w3e}
 export FIXED_RANGE=${FIXED_RANGE:-"10.0.0.0/24"}
 export GATEWAY=${GATEWAY:-"10.0.0.1"}
@@ -109,6 +115,7 @@ export VZSTORAGE_EXISTING_CLUSTER=${VZSTORAGE_EXISTING_CLUSTER:-True}
 
 echo "Host IP address: " $HOST_IP
 echo "Password: " $PASSWORD
+echo "Virt type: " $VIRT_TYPE
 echo "Using provider network: " $USE_PROVIDERNET
 echo "Private range: " $FIXED_RANGE
 echo "Gateway: " $GATEWAY
