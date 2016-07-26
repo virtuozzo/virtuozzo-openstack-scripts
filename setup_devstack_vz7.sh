@@ -5,13 +5,13 @@ source functions.sh
 usage(){
     set +x
     echo "Usage:"
-    echo "     source vzrc [--host_ip HOST] [--password PASSWORD]"
+    echo "     source vzrc [--host_ip HOST_IP] [--password PASSWORD]"
     echo "            [--virt_type vz|qemu|kvm]"
     echo "            [--use_provider_network]  [--fixed_range FIXED_RANGE]"
     echo "            [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]"
     echo "            [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]"
     echo "            [--vzstorage CLUSTER_NAME] [--mode MODE]"
-    echo "            [--controller_host CONTROLLER_HOST] [--dest DEST]"
+    echo "            [--controller_host CONTROLLER_IP] [--dest DEST]"
     echo "     `pwd`/setup_devstack_for_vz7.sh"
     echo "Where:"
     echo "     HOST_IP - network interface IP address to be used by OpenStack services"
@@ -30,7 +30,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ -z "$HOST_IP" || -z "$MODE" || -z "$USE_PROVIDERNET" || -z "$VIRT_TYPE" ]]; then
+if [[ -z "$HOST_IP" || -z "$PASSWORD" || -z "$MODE" || -z "$USE_PROVIDERNET" || -z "$VIRT_TYPE" ]]; then
     usage
 fi
 
@@ -66,10 +66,7 @@ if [[ "$MODE" == "COMPUTE" ]] || [[ "$MODE" == "ALL" ]]; then
 	cleanup_compute
 fi
 export DEST=${DEST:-/vz/stack}
-
-export SCRIPT_HOME=`pwd`
 echo "Using destination $DEST"
-
 create_stack_user $DEST
 
 if [[ ! -d /opt/stack ]] && [[ "$DEST" != "/opt/stack" ]]; then

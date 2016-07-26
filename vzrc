@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# source vzrc [--host_ip HOST] [--password PASSWORD] [--use_provider_network true|false]
+# source vzrc [--host_ip HOST_IP] [--password PASSWORD] [--use_provider_network true|false]
 #             [--virt_type vz|qemu|kvm] [--fixed_range FIXED_RANGE]
 #             [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]
 #             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
 #             [--mode MODE] [--vzstorage CLUSTER_NAME] [--existing_cluster true|false]
-#             [--controller CONTROLLER_HOST] [--dest DEST]
+#             [--controller CONTROLLER_IP] [--dest DEST]
 
 HOST_IP=
 PASSWORD=
