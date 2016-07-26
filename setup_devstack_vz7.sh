@@ -18,6 +18,13 @@ usage(){
     echo "     PASSWORD - your password for OpenStack services"
     echo "     MODE - [ALL|COMPUTE|CONTROLLER] ALL is default value"
     echo "     CONTROLLER_IP - IP address of CONTROLLER host, required parameter if MODE=COMPUTE"
+    echo "     FIXED_RANGE - [IP/MASK]"
+    echo "     FLOATING_RANGE - [IP/MASK]"
+    echo "     FLOATING_POOL - [start=START_IP,end=END_IP]"
+    echo "     PUBLIC_GATEWAY - IP address of gateway associated with the public network"
+    echo "     GATEWAY - IP address of gateway associated with the private network"
+    echo "     CLUSTER_NAME - The name of vzcluster to connect to"
+    echo "     DEST - [LOCAL_PATH] Path to local directory for openstack projects"
     exit 1
 }
 
