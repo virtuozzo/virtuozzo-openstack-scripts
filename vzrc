@@ -134,4 +134,5 @@ echo "Controller host: " $CONTROLLER_IP
 echo "Stack user home: " $DEST
 echo "Using vzstorage: " $SETUP_VZSTORAGE
 echo "vzstorage cluster name: " $VZSTORAGE_CLUSTER_NAME
+echo "vzstorage existing cluster: " $VZSTORAGE_EXISTING_CLUSTER
 
