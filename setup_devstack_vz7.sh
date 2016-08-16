@@ -292,10 +292,10 @@ set -x
 fi
 
 
-fix_openstack_project nova refs/changes/14/214314/5,refs/changes/98/282398/3
+fix_openstack_project nova refs/changes/14/214314/5,refs/changes/98/282398/3,refs/changes/00/355800/1
 fix_openstack_project horizon refs/changes/52/340552/2
 fix_openstack_project glance refs/changes/33/341633/2,refs/changes/23/341623/1
-fix_openstack_project cinder refs/changes/65/276465/24,refs/changes/28/342328/3
+fix_openstack_project cinder refs/changes/65/276465/25,refs/changes/28/342328/3
 fixup_configs_for_libvirt
 
 sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
