@@ -296,7 +296,7 @@ fi
 
 
 fix_openstack_project devstack refs/changes/91/356091/1
-fix_openstack_project nova refs/changes/14/214314/5,refs/changes/98/282398/3,refs/changes/00/355800/1
+fix_openstack_project nova refs/changes/14/214314/5,refs/changes/00/355800/1,refs/changes/05/355805/2
 fix_openstack_project horizon refs/changes/52/340552/2
 fix_openstack_project glance refs/changes/33/341633/2,refs/changes/23/341623/1
 fix_openstack_project cinder refs/changes/65/276465/25,refs/changes/28/342328/3
