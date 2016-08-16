@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # source vzrc [--host_ip HOST_IP] [--password PASSWORD] [--use_provider_network true|false]
-#             [--virt_type vz|qemu|kvm] [--fixed_range FIXED_RANGE]
+#             [--virt_type vz|qemu|kvm] [--images_type ploop|qcow2] [--fixed_range FIXED_RANGE]
 #             [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]
 #             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
 #             [--mode MODE] [--vzstorage CLUSTER_NAME] [--existing_cluster true|false]
@@ -22,6 +22,7 @@ SETUP_VZSTORAGE=
 VZSTORAGE_CLUSTER_NAME=
 VZSTORAGE_EXISTING_CLUSTER=
 VIRT_TYPE=
+IMAGES_TYPE=
 
 while [[ $# -gt 1 ]]
 do
@@ -84,6 +85,10 @@ case $key in
     VIRT_TYPE="$2"
     shift
     ;;
+    --images_type)
+    IMAGES_TYPE="$2"
+    shift
+    ;;
     *)
     # unknown option
     echo "unknown option $1"
@@ -104,6 +109,7 @@ export USE_PROVIDERNET=${USE_PROVIDERNET:-False}
 export MODE=${MODE:-ALL}
 export CONTROLLER_IP
 export DEST=${DEST:-/vz/stack}
+export IMAGES_TYPE=${IMAGES_TYPE:-ploop}
 
 if [[ "$VZSTORAGE_CLUSTER_NAME" != "" ]]; then
 SETUP_VZSTORAGE=True
@@ -116,6 +122,7 @@ export VZSTORAGE_EXISTING_CLUSTER=${VZSTORAGE_EXISTING_CLUSTER:-True}
 echo "Host IP address: " $HOST_IP
 echo "Password: " $PASSWORD
 echo "Virt type: " $VIRT_TYPE
+echo "Images type: " $IMAGES_TYPE
 echo "Using provider network: " $USE_PROVIDERNET
 echo "Private range: " $FIXED_RANGE
 echo "Gateway: " $GATEWAY
