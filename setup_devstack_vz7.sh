@@ -121,6 +121,7 @@ if [[ ! -d ~stack/devstack ]]; then
 
 	git clone git://git.openstack.org/openstack-dev/devstack
 	"
+        fix_openstack_project devstack refs/changes/91/356091/1
 fi
 
 if [[ ! -d /var/log/nova ]]; then
@@ -295,11 +296,10 @@ set -x
 fi
 
 
-fix_openstack_project devstack refs/changes/91/356091/1
-fix_openstack_project nova refs/changes/14/214314/5,refs/changes/00/355800/1,refs/changes/05/355805/2
-fix_openstack_project horizon refs/changes/52/340552/2
-fix_openstack_project glance refs/changes/33/341633/2,refs/changes/23/341623/1
-fix_openstack_project cinder refs/changes/65/276465/25,refs/changes/28/342328/3
+clone_and_fix_openstack_project nova refs/changes/14/214314/5,refs/changes/00/355800/1,refs/changes/05/355805/2
+clone_and_fix_openstack_project horizon refs/changes/52/340552/2
+clone_and_fix_openstack_project glance refs/changes/33/341633/2,refs/changes/23/341623/1
+clone_and_fix_openstack_project cinder refs/changes/65/276465/25,refs/changes/28/342328/3
 fixup_configs_for_libvirt
 
 sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"

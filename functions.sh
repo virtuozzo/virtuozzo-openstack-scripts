@@ -76,7 +76,7 @@ function apply_cherry_pick {
 }
 
 
-function fix_openstack_project {
+function clone_and_fix_openstack_project {
 
 local project=$1
 local changes=$2
@@ -90,6 +90,17 @@ if [[ ! -d ~stack/$project ]]; then
         su stack -c "source functions.sh && \
         apply_cherry_pick $repo ~stack/$project $changes"
 fi
+
+}
+
+function fix_openstack_project {
+
+local project=$1
+local changes=$2
+local repo=https://review.openstack.org/openstack/$project
+
+su stack -c "source functions.sh && \
+apply_cherry_pick $repo ~stack/$project $changes"
 
 }
 
