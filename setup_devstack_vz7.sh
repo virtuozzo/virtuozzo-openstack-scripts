@@ -221,6 +221,7 @@ VZSTORAGE_EXISTING_CLUSTER=$VZSTORAGE_EXISTING_CLUSTER
 CINDER_ENABLED_BACKENDS=lvm:lvmdriver-1,vzstorage:vstorage-ploop,vzstorage:vstorage-qcow2
 _EOF
 set -x
+mkdir -p /var/log/pstorage/$VZSTORAGE_CLUSTER_NAME
 fi
 
 
