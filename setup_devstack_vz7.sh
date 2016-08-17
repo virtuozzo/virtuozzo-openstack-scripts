@@ -121,7 +121,7 @@ if [[ ! -d ~stack/devstack ]]; then
 
 	git clone git://git.openstack.org/openstack-dev/devstack
 	"
-        fix_openstack_project devstack refs/changes/91/356091/1
+        fix_openstack_project devstack refs/changes/91/356091/1 git://git.openstack.org/openstack-dev/devstack
 fi
 
 if [[ ! -d /var/log/nova ]]; then
