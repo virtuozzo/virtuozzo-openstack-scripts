@@ -295,12 +295,10 @@ ENABLED_SERVICES+=,n-cpu
 _EOF
 set -x
 fi
-
-
-clone_and_fix_openstack_project nova refs/changes/14/214314/5,refs/changes/00/355800/1,refs/changes/05/355805/2
+clone_and_fix_openstack_project nova refs/changes/14/214314/5,refs/changes/98/282398/3,refs/changes/05/355805/2,refs/changes/43/330643/6,refs/changes/43/365943/1
 clone_and_fix_openstack_project horizon refs/changes/52/340552/2
 clone_and_fix_openstack_project glance refs/changes/33/341633/2,refs/changes/23/341623/1
-clone_and_fix_openstack_project cinder refs/changes/65/276465/25,refs/changes/28/342328/3
+clone_and_fix_openstack_project cinder refs/changes/89/357989/6,refs/changes/67/362167/5,refs/changes/79/357679/5
 fixup_configs_for_libvirt
 
 sudo su stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
