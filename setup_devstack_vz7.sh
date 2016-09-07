@@ -6,7 +6,7 @@ usage(){
     set +x
     echo "Usage:"
     echo "     source vzrc [--host_ip HOST_IP] [--password PASSWORD]"
-    echo "            [--virt_type vz|qemu|kvm]"
+    echo "            [--virt_type vz|qemu|kvm] [--images_type ploop|qcow2]"
     echo "            [--use_provider_network]  [--fixed_range FIXED_RANGE]"
     echo "            [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]"
     echo "            [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]"
