@@ -68,8 +68,10 @@ function apply_cherry_pick {
         # modify current source
         for ref in ${cherry_pick_refs//,/ }; do
                 echo "Applying $ref from $git_remote ..."
+                set -e
                 git fetch $git_remote $ref
                 git cherry-pick FETCH_HEAD
+                set +e
                 echo "Applying $ref from $git_remote ... done"
         done
         popd
