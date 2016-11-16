@@ -296,7 +296,8 @@ ENABLED_SERVICES+=,n-cpu
 _EOF
 set -x
 fi
-clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/98/282398/16,refs/changes/05/355805/4
+
+clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/98/282398/16,refs/changes/05/355805/6,refs/changes/29/397829/2,refs/changes/88/312488/12,refs/changes/18/396218/1,refs/changes/63/397163/3,refs/changes/66/397166/3
 clone_and_fix_openstack_project glance refs/changes/33/341633/5,refs/changes/23/341623/2
 clone_and_fix_openstack_project cinder refs/changes/89/357989/7,refs/changes/67/362167/6,refs/changes/79/357679/8
 fixup_configs_for_libvirt
