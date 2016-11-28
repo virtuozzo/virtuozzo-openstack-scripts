@@ -104,6 +104,18 @@ yum install -y http://fedora-mirror01.rbc.ru/pub/epel//epel-release-latest-7.noa
 yum install -y mysql-connector-python || true
 yum install -y scsi-target-utils || true
 
+# There is a problem after yum update that python-requests and urllib3 packets conflict
+# with ones provided by pip. We need either to ship necessary rpm versions of these packages,
+# which is not done yet, or do the following trick
+
+pip uninstall requests -y || true
+pip uninstall requests -y || true
+pip install requests || true
+
+pip uninstall urllib3 -y || true
+pip uninstall urllib3 -y || true
+pip install urllib3 || true
+
 service mysqld stop || true
 rm -rf /var/lib/mysql/mysql.sock || true
 if [[ ! -d /var/run/mysqld/ ]]; then
