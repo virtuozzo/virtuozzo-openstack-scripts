@@ -216,6 +216,37 @@ sudo su stack -c "cd ~ && tar -xzvf centos7-exe.hds.tar.gz"
 fi
 
 
+
+if ([[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]]) && [[ "${TELEMETRY,,}" == "true" ]]; then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+
+# Enable telemetry services
+ENABLED_SERVICES+=,gnocchi-grafana,gnocchi-api,gnocchi-metricd,ceilometer
+CEILOMETER_BACKEND=gnocchi
+enable_plugin ceilometer https://git.openstack.org/openstack/ceilometer.git
+enable_plugin gnocchi https://github.com/openstack/gnocchi master
+#enable_plugin monasca-api https://git.openstack.org/openstack/monasca-api.git
+_EOF
+fi
+
+if ([[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]]) && [[ "${FWAAS,,}" == "true" ]]; then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+ENABLED_SERVICES+=,q-fwaas
+enable_plugin neutron-fwaas https://git.openstack.org/openstack/neutron-fwaas
+_EOF
+fi
+
+if ([[ "$MODE" == "CONTROLLER" ]] || [[ "$MODE" == "ALL" ]]) && [[ "${LBAAS,,}" == "true" ]]; then
+set +x
+cat >> ~stack/devstack/local.conf << _EOF
+ENABLED_SERVICES+=,q-lbaasv2
+enable_plugin neutron-lbaas https://git.openstack.org/openstack/neutron-lbaas
+enable_plugin neutron-lbaas-dashboard https://git.openstack.org/openstack/neutron-lbaas-dashboard
+_EOF
+fi
+
 if [[ "$MODE" == "CONTROLLER" ]]; then
 set +x
 cat >> ~stack/devstack/local.conf << _EOF

@@ -7,6 +7,7 @@ Usage:
             [--use_provider_network true|false] [--fixed_range FIXED_RANGE]
             [--floating_range FLOATING_RANGE] [--floating_pool FLOATING_POOL]
             [--public_gateway PUBLIC_GATEWAY] [--gateway GATEWAY]
+            [--fwaas true|false] [--lbaas true|false] [--telemetry true|false]
             [--existing_cluster true|false]
             [--vzstorage CLUSTER_NAME] [--mode MODE]
             [--controller CONTROLLER_IP] [--dest DEST]
