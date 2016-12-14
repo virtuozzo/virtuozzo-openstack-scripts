@@ -340,8 +340,8 @@ _EOF
 set -x
 fi
 
-clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/05/355805/7,refs/changes/29/397829/6,refs/changes/88/312488/12,refs/changes/18/396218/2,refs/changes/66/397166/5
-clone_and_fix_openstack_project glance refs/changes/33/341633/6,refs/changes/23/341623/3
+clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/05/355805/12,refs/changes/29/397829/7,refs/changes/88/312488/12,refs/changes/18/396218/5,refs/changes/66/397166/6
+clone_and_fix_openstack_project glance refs/changes/33/341633/8,refs/changes/23/341623/3
 clone_and_fix_openstack_project cinder refs/changes/35/400235/1,refs/changes/79/357679/9
 fixup_configs_for_libvirt
 
