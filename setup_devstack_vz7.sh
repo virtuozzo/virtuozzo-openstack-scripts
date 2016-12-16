@@ -345,6 +345,19 @@ clone_and_fix_openstack_project glance refs/changes/33/341633/8,refs/changes/23/
 clone_and_fix_openstack_project cinder refs/changes/35/400235/1,refs/changes/79/357679/9
 fixup_configs_for_libvirt
 
+
+# workaround https://review.openstack.org/#/c/411405/
+# now we are waiting for release of new python-openstackclient
+clone_openstack_project requirements
+sed -i '/python-openstackclient===3.5.0/d'  ~stack/requirements/upper-constraints.txt
+clone_openstack_project python-openstackclient
+pushd .
+cd ~stack/python-openstackclient
+python setup.py install
+popd
+# end of workaround 
+
+
 sudo su - stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
 
 # connect br0 with $EXTERNAL_BRIDGE if provider network should be configured
