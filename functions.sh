@@ -77,20 +77,28 @@ function apply_cherry_pick {
         popd
 }
 
-
 function clone_and_fix_openstack_project {
 
 local project=$1
 local changes=$2
+
+if [[ ! -d ~stack/$project ]]; then
+
+        clone_openstack_project $project
+        fix_openstack_project $project $changes
+fi
+
+}
+
+function clone_openstack_project {
+
+local project=$1
 local repo=https://review.openstack.org/openstack/$project
 
 if [[ ! -d ~stack/$project ]]; then
 
 	su stack -c "source ~stack/devstack/functions && \
         git_clone $repo ~stack/$project master"
-
-        su stack -c "source functions.sh && \
-        apply_cherry_pick $repo ~stack/$project $changes"
 fi
 
 }
