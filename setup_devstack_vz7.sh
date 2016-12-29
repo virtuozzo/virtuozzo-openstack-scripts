@@ -85,17 +85,6 @@ pushd .
 
 sudo su stack -c "~stack/devstack/unstack.sh" || true
 
-NEED_REBOOT=false
-onboot_preparations NEED_REBOOT
-if [[ $NEED_REBOOT == true ]]; then
-    set +x
-    echo "============================================================="
-    echo "Please reboot the node to update the parameters in modprobe.d"
-    echo "After restart run setup script again"
-    echo "============================================================="
-    exit 1
-fi
-
 yum install -y screen || true
 yum install -y git patch || true
 yum install -y redhat-lsb-core || true
