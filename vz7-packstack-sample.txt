@@ -42,7 +42,7 @@ CONFIG_HORIZON_INSTALL=y
 CONFIG_SWIFT_INSTALL=n
 
 # Specify 'y' to install OpenStack Metering (ceilometer). ['y', 'n']
-CONFIG_CEILOMETER_INSTALL=n
+CONFIG_CEILOMETER_INSTALL=y
 
 # Specify 'y' to install OpenStack Telemetry Alarming (Aodh). Note
 # Aodh requires Ceilometer to be installed as well. ['y', 'n']
@@ -84,7 +84,7 @@ CONFIG_NAGIOS_INSTALL=n
 # time with the same answer file and do not want Packstack to
 # overwrite these server's configurations. Leave empty if you do not
 # need to exclude any servers.
-EXCLUDE_SERVERS=n
+EXCLUDE_SERVERS=
 
 # Specify 'y' if you want to run OpenStack services in debug mode;
 # otherwise, specify 'n'. ['y', 'n']
@@ -92,14 +92,14 @@ CONFIG_DEBUG_MODE=n
 
 # Server on which to install OpenStack services specific to the
 # controller role (for example, API servers or dashboard).
-CONFIG_CONTROLLER_HOST=10.24.41.47
+CONFIG_CONTROLLER_HOST=127.0.0.1
 
 # List the servers on which to install the Compute service.
-CONFIG_COMPUTE_HOSTS=10.24.41.45, 10.24.41.50
+CONFIG_COMPUTE_HOSTS=127.0.0.1
 
 # List of servers on which to install the network service such as
 # Compute networking (nova network) or OpenStack Networking (neutron).
-CONFIG_NETWORK_HOSTS=10.24.41.47
+CONFIG_NETWORK_HOSTS=127.0.0.1
 
 # Specify 'y' if you want to use VMware vCenter as hypervisor and
 # storage; otherwise, specify 'n'. ['y', 'n']
@@ -136,11 +136,11 @@ CONFIG_VCENTER_CLUSTER_NAMES=
 
 # (Unsupported!) Server on which to install OpenStack services
 # specific to storage servers such as Image or Block Storage services.
-CONFIG_STORAGE_HOST=10.24.41.47
+CONFIG_STORAGE_HOST=127.0.0.1
 
 # (Unsupported!) Server on which to install OpenStack services
 # specific to OpenStack Data Processing (sahara).
-CONFIG_SAHARA_HOST=10.24.41.47
+CONFIG_SAHARA_HOST=127.0.0.1
 
 # Specify 'y' to enable the EPEL repository (Extra Packages for
 # Enterprise Linux). ['y', 'n']
@@ -252,32 +252,32 @@ CONFIG_SSL_CERT_DIR=~/packstackca/
 # Certificate.
 CONFIG_SSL_CACERT_SELFSIGN=n
 
-# Enter the selfsigned CAcert subject country.
-CONFIG_SELFSIGN_CACERT_SUBJECT_C=--
+# Enter the ssl certificates subject country.
+CONFIG_SSL_CERT_SUBJECT_C=--
 
-# Enter the selfsigned CAcert subject state.
-CONFIG_SELFSIGN_CACERT_SUBJECT_ST=State
+# Enter the ssl certificates subject state.
+CONFIG_SSL_CERT_SUBJECT_ST=State
 
-# Enter the selfsigned CAcert subject location.
-CONFIG_SELFSIGN_CACERT_SUBJECT_L=City
+# Enter the ssl certificates subject location.
+CONFIG_SSL_CERT_SUBJECT_L=City
 
-# Enter the selfsigned CAcert subject organization.
-CONFIG_SELFSIGN_CACERT_SUBJECT_O=openstack
+# Enter the ssl certificates subject organization.
+CONFIG_SSL_CERT_SUBJECT_O=openstack
 
-# Enter the selfsigned CAcert subject organizational unit.
-CONFIG_SELFSIGN_CACERT_SUBJECT_OU=packstack
+# Enter the ssl certificates subject organizational unit.
+CONFIG_SSL_CERT_SUBJECT_OU=packstack
 
-# Enter the selfsigned CAcert subject common name.
-CONFIG_SELFSIGN_CACERT_SUBJECT_CN=localhost.localdomain
+# Enter the ssl certificates subject common name.
+CONFIG_SSL_CERT_SUBJECT_CN=localhost
 
-CONFIG_SELFSIGN_CACERT_SUBJECT_MAIL=admin@localhost.localdomain
+CONFIG_SSL_CERT_SUBJECT_MAIL=admin@localhost
 
 # Service to be used as the AMQP broker. Allowed values are: rabbitmq
 # ['rabbitmq']
 CONFIG_AMQP_BACKEND=rabbitmq
 
 # IP address of the server on which to install the AMQP service.
-CONFIG_AMQP_HOST=10.24.41.47
+CONFIG_AMQP_HOST=127.0.0.1
 
 # Specify 'y' to enable SSL for the AMQP service. ['y', 'n']
 CONFIG_AMQP_ENABLE_SSL=n
@@ -299,7 +299,7 @@ CONFIG_AMQP_AUTH_PASSWORD=PW_PLACEHOLDER
 # installation was not specified in CONFIG_MARIADB_INSTALL, specify
 # the IP address of an existing database server (a MariaDB cluster can
 # also be specified).
-CONFIG_MARIADB_HOST=10.24.41.47
+CONFIG_MARIADB_HOST=127.0.0.1
 
 # User name for the MariaDB administrative user.
 CONFIG_MARIADB_USER=root
@@ -350,7 +350,7 @@ CONFIG_KEYSTONE_SERVICE_NAME=httpd
 CONFIG_KEYSTONE_IDENTITY_BACKEND=sql
 
 # URL for the Identity service LDAP backend.
-CONFIG_KEYSTONE_LDAP_URL=ldap://10.24.41.47
+CONFIG_KEYSTONE_LDAP_URL=ldap://127.0.0.1
 
 # User DN for the Identity service LDAP backend.  Used to bind to the
 # LDAP server if the LDAP server does not allow anonymous
@@ -364,7 +364,7 @@ CONFIG_KEYSTONE_LDAP_USER_PASSWORD=
 CONFIG_KEYSTONE_LDAP_SUFFIX=
 
 # Query scope for the Identity service LDAP backend. Use 'one' for
-# onelevel/singleLevel or 'sub' for subtree/wholeSubtree ('base' isf
+# onelevel/singleLevel or 'sub' for subtree/wholeSubtree ('base' is
 # not actually used by the Identity service and is therefore
 # deprecated). ['base', 'one', 'sub']
 CONFIG_KEYSTONE_LDAP_QUERY_SCOPE=one
@@ -545,8 +545,8 @@ CONFIG_CINDER_DB_PURGE_ENABLE=True
 CONFIG_CINDER_KS_PW=1q2w3e
 
 # Storage backend to use for the Block Storage service; valid options
-# are: lvm, gluster, nfs, vmdk, netapp. ['lvm', 'gluster', 'nfs',
-# 'vmdk', 'netapp']
+# are: lvm, gluster, nfs, vmdk, netapp, solidfire. ['lvm', 'gluster',
+# 'nfs', 'vmdk', 'netapp', 'solidfire']
 CONFIG_CINDER_BACKEND=lvm
 
 # Specify 'y' to create the Block Storage volumes group. That is,
@@ -695,6 +695,12 @@ CONFIG_CINDER_NETAPP_WEBSERVICE_PATH=/devmgr/v2
 # Defaults to ''.
 CONFIG_CINDER_NETAPP_STORAGE_POOLS=
 
+# VStorage cluster name.
+CONFIG_CINDER_VSTORAGE_CLUSTER_NAME=
+
+# VStorage cluster password.
+CONFIG_CINDER_VSTORAGE_CLUSTER_PASSWORD=
+
 # Password to use for OpenStack Bare Metal Provisioning (ironic) to
 # access the database.
 CONFIG_IRONIC_DB_PW=PW_PLACEHOLDER
@@ -753,6 +759,11 @@ CONFIG_NOVA_PCI_ALIAS=
 # "name':"default"}, {...}]
 CONFIG_NOVA_PCI_PASSTHROUGH_WHITELIST=
 
+# The hypervisor driver to use with Nova. Can be 'qemu', 'kvm' or
+# 'parallels'. Defaults to 'qemu' on virtual machines and 'kvm' on
+# bare metal hardware. For nested KVM set it explicitly to 'kvm'.
+CONFIG_NOVA_LIBVIRT_VIRT_TYPE=parallels
+
 # Private interface for flat DHCP on the Compute servers.
 CONFIG_NOVA_COMPUTE_PRIVIF=
 
@@ -808,7 +819,7 @@ CONFIG_LBAAS_INSTALL=n
 
 # Specify 'y' to install OpenStack Networking's L3 Metering agent
 # ['y', 'n']
-CONFIG_NEUTRON_METERING_AGENT_INSTALL=n
+CONFIG_NEUTRON_METERING_AGENT_INSTALL=y
 
 # Specify 'y' to configure OpenStack Networking's Firewall-
 # as-a-Service (FWaaS). ['y', 'n']
@@ -834,12 +845,12 @@ CONFIG_NEUTRON_ML2_TENANT_NETWORK_TYPES=vxlan
 # namespace. ['logger', 'test', 'linuxbridge', 'openvswitch',
 # 'hyperv', 'ncs', 'arista', 'cisco_nexus', 'mlnx', 'l2population',
 # 'sriovnicswitch']
-CONFIG_NEUTRON_ML2_MECHANISM_DRIVERS=openvswitch,l2population
+CONFIG_NEUTRON_ML2_MECHANISM_DRIVERS=openvswitch
 
 # Comma-separated list of physical_network names with which flat
 # networks can be created. Use * to allow flat networks with arbitrary
 # physical_network names.
-CONFIG_NEUTRON_ML2_FLAT_NETWORKS=public
+CONFIG_NEUTRON_ML2_FLAT_NETWORKS=*
 
 # Comma-separated list of <physical_network>:<vlan_min>:<vlan_max> or
 # <physical_network> specifying physical_network names usable for VLAN
@@ -902,7 +913,7 @@ CONFIG_NEUTRON_OVS_BRIDGE_MAPPINGS=public:br-ex
 # issuing the following command: packstack --allinone --os-neutron-
 # ovs-bridge-mappings=ext-net:br-ex --os-neutron-ovs-bridge-interfaces
 # =br-ex:eth0
-CONFIG_NEUTRON_OVS_BRIDGE_IFACES=br-ex:10.24.41.0/24
+CONFIG_NEUTRON_OVS_BRIDGE_IFACES=
 
 # Comma-separated list of Open vSwitch bridges that must be created
 # and connected to interfaces in compute nodes when flat or vlan type
@@ -916,8 +927,8 @@ CONFIG_NEUTRON_OVS_BRIDGES_COMPUTE=
 
 # Interface for the Open vSwitch tunnel. Packstack overrides the IP
 # address used for tunnels on this hypervisor to the IP found on the
-# specified interface (for example, eth1)
-CONFIG_NEUTRON_OVS_TUNNEL_IF=10.0.0.0/24
+# specified interface (for example, eth1).
+CONFIG_NEUTRON_OVS_TUNNEL_IF=
 
 # Comma-separated list of subnets (for example,
 # 192.168.10.0/24,192.168.11.0/24) used for sending tunneling packets.
@@ -926,7 +937,7 @@ CONFIG_NEUTRON_OVS_TUNNEL_IF=10.0.0.0/24
 # This is useful when you add existing nodes to EXCLUDE_SERVERS
 # because, in this case, packstack cannot modify the IP filtering of
 # the existing nodes.
-CONFIG_NEUTRON_OVS_TUNNEL_SUBNETS=10.0.0.0/24
+CONFIG_NEUTRON_OVS_TUNNEL_SUBNETS=
 
 # VXLAN UDP port.
 CONFIG_NEUTRON_OVS_VXLAN_UDP_PORT=4789
@@ -1147,7 +1158,7 @@ CONFIG_HEAT_CLOUDWATCH_INSTALL=n
 
 # Specify 'y' to install the Orchestration CloudFormation API. ['y',
 # 'n']
-CONFIG_HEAT_CFN_INSTALL=n
+CONFIG_HEAT_CFN_INSTALL=y
 
 # Name of the Identity domain for Orchestration.
 CONFIG_HEAT_DOMAIN=heat
@@ -1172,18 +1183,33 @@ CONFIG_PROVISION_DEMO_FLOATRANGE=172.24.4.224/28
 
 # The name to be assigned to the demo image in Glance (default
 # "cirros").
-CONFIG_PROVISION_IMAGE_NAME=cirros
+CONFIG_PROVISION_IMAGE_NAME=centos7-exe
 
 # A URL or local file location for an image to download and provision
 # in Glance (defaults to a URL for a recent "cirros" image).
-CONFIG_PROVISION_IMAGE_URL=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+CONFIG_PROVISION_IMAGE_URL=http://updates.virtuozzo.com/server/virtuozzo/en_us/odin/7/techpreview-ct/centos7-exe.hds.tar.gz
 
 # Format for the demo image (default "qcow2").
-CONFIG_PROVISION_IMAGE_FORMAT=qcow2
+CONFIG_PROVISION_IMAGE_FORMAT=ploop
+
+# Image properties
+CONFIG_PROVISION_IMAGE_PROPERTIES=vm_mode=exe
 
 # User to use when connecting to instances booted from the demo
 # image.
-CONFIG_PROVISION_IMAGE_SSH_USER=cirros
+CONFIG_PROVISION_IMAGE_SSH_USER=centos
+
+# Name of the uec image created in Glance used in tempest tests
+# (default "cirros-uec").
+CONFIG_PROVISION_UEC_IMAGE_NAME=cirros-uec
+
+# URL of the kernel image copied to Glance image for uec image
+# (defaults to a URL for a recent "cirros" uec image).
+CONFIG_PROVISION_UEC_IMAGE_KERNEL_URL=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-kernel
+
+# URL of the ramdisk image copied to Glance image for uec image
+# (defaults to a URL for a recent "cirros" uec image).
+CONFIG_PROVISION_UEC_IMAGE_RAMDISK_URL=http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-initramfs
 
 CONFIG_TEMPEST_HOST=
 
@@ -1241,35 +1267,13 @@ CONFIG_CEILOMETER_COORDINATION_BACKEND=redis
 CONFIG_CEILOMETER_METERING_BACKEND=database
 
 # IP address of the server on which to install MongoDB.
-CONFIG_MONGODB_HOST=10.24.41.47
+CONFIG_MONGODB_HOST=127.0.0.1
 
-# IP address of the server on which to install the Redis master
-# server.
-CONFIG_REDIS_MASTER_HOST=10.24.41.47
+# IP address of the server on which to install the Redis server.
+CONFIG_REDIS_HOST=127.0.0.1
 
-# Port on which the Redis server(s) listens.
+# Port on which the Redis server listens.
 CONFIG_REDIS_PORT=6379
-
-# Specify 'y' to have Redis try to use HA. ['y', 'n']
-CONFIG_REDIS_HA=n
-
-# Hosts on which to install Redis slaves.
-CONFIG_REDIS_SLAVE_HOSTS=
-
-# Hosts on which to install Redis sentinel servers.
-CONFIG_REDIS_SENTINEL_HOSTS=
-
-# Host to configure as the Redis coordination sentinel.
-CONFIG_REDIS_SENTINEL_CONTACT_HOST=
-
-# Port on which Redis sentinel servers listen.
-CONFIG_REDIS_SENTINEL_PORT=26379
-
-# Quorum value for Redis sentinel servers.
-CONFIG_REDIS_SENTINEL_QUORUM=2
-
-# Name of the master server watched by the Redis sentinel. ['[a-z]+']
-CONFIG_REDIS_MASTER_NAME=mymaster
 
 # Password to use for Telemetry Alarming to authenticate with the
 # Identity service.
