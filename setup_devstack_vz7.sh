@@ -258,13 +258,7 @@ mkdir -p /var/log/pstorage/$VZSTORAGE_CLUSTER_NAME
 fi
 
 
-if [[ "$MODE" == "COMPUTE" ]]; then
-        EXTERNAL_BRIDGE=br-external
-        ovs-vsctl add-br $EXTERNAL_BRIDGE || true
-else
-        EXTERNAL_BRIDGE=br-ex
-fi
-
+EXTERNAL_BRIDGE=br-ex
 
 if [[ "$MODE" == "COMPUTE" ]]; then
 set +x
@@ -352,18 +346,6 @@ sed -i s/"install_package qemu-kvm"/"#install_package qemu-kvm"/ ~stack/devstack
 # end of workaround
 
 sudo su - stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
-
-# connect br0 with $EXTERNAL_BRIDGE if provider network should be configured
-if [[ "$USE_PROVIDERNET" == "True" ]]; then
-
-ip link add veth-public0 type veth peer name veth-public1 || true
-
-ip l set dev veth-public0 up || true
-ip l set dev veth-public1 up || true
-ovs-vsctl add-port $EXTERNAL_BRIDGE veth-public0 || true
-brctl addif br0 veth-public1 || true
-
-fi
 
 pip uninstall -y psutil || true
 yum reinstall -y python-psutil
