@@ -339,11 +339,6 @@ python setup.py install
 popd
 # end of workaround 
 
-# workaround conflict when installing qemu-kvm
-# do not install qemu-kvm
-sed -i s/"install_package qemu-kvm"/"#install_package qemu-kvm"/ ~stack/devstack/lib/nova_plugins/functions-libvirt
-# end of workaround
-
 sudo su - stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
 
 pip uninstall -y psutil || true
