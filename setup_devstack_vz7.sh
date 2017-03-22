@@ -151,7 +151,7 @@ SUBNETPOOL_PREFIX_V4=$FIXED_RANGE
 ENABLED_SERVICES=key,rabbit,mysql,horizon,tempest
 
 # Enable Nova services
-ENABLED_SERVICES+=,n-api,n-crt,n-cond,n-sch,n-cauth,n-novnc
+ENABLED_SERVICES+=,n-api,n-crt,n-cond,n-sch,n-cauth,n-novnc,placement-api,placement-client,n-cell
 
 # Enable Glance services
 ENABLED_SERVICES+=,g-api,g-reg
@@ -318,7 +318,7 @@ if [[ "$MODE" == "ALL" ]]; then
 set +x
 cat >> ~stack/devstack/local.conf << _EOF
 # Enable Nova compute service
-ENABLED_SERVICES+=,n-cpu,placement-api,placement-client
+ENABLED_SERVICES+=,n-cpu
 _EOF
 set -x
 fi
