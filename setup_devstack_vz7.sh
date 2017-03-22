@@ -318,7 +318,7 @@ if [[ "$MODE" == "ALL" ]]; then
 set +x
 cat >> ~stack/devstack/local.conf << _EOF
 # Enable Nova compute service
-ENABLED_SERVICES+=,n-cpu
+ENABLED_SERVICES+=,n-cpu,placement-api,placement-client
 _EOF
 set -x
 fi
