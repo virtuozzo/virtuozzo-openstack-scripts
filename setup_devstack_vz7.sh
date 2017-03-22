@@ -341,10 +341,10 @@ popd
 
 sudo su - stack -c "cd ~/devstack && ./unstack.sh && DEST=$DEST ./stack.sh"
 
-pip uninstall -y psutil || true
-yum reinstall -y python-psutil
-systemctl reset-failed
-systemctl restart vcmmd.service
+#pip uninstall -y psutil || true
+#yum reinstall -y python-psutil
+#systemctl reset-failed
+#systemctl restart vcmmd.service
 
 popd
 
