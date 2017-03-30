@@ -8,7 +8,7 @@ CONFIG_SSH_KEY=/root/.ssh/id_rsa.pub
 
 # Default password to be used everywhere (overridden by passwords set
 # for individual services or users).
-CONFIG_DEFAULT_PASSWORD=1q2w3e
+CONFIG_DEFAULT_PASSWORD=PW_PLACEHOLDER
 
 # The amount of service workers/threads to use for each service.
 # Useful to tweak when you have memory constraints. Defaults to the
