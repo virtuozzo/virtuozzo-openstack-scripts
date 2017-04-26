@@ -88,8 +88,6 @@ sudo su stack -c "~stack/devstack/unstack.sh" || true
 yum install -y screen || true
 yum install -y git patch || true
 yum install -y redhat-lsb-core || true
-yum install -y https://rdoproject.org/repos/rdo-release.rpm || true
-yum install -y http://fedora-mirror01.rbc.ru/pub/epel//epel-release-latest-7.noarch.rpm || true
 yum install -y mysql-connector-python || true
 yum install -y scsi-target-utils || true
 
@@ -104,6 +102,7 @@ pip install requests || true
 pip uninstall urllib3 -y || true
 pip uninstall urllib3 -y || true
 pip install urllib3 || true
+yum install -y vz-platform-release
 
 service mysqld stop || true
 rm -rf /var/lib/mysql/mysql.sock || true
