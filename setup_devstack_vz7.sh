@@ -90,18 +90,6 @@ yum install -y git patch || true
 yum install -y redhat-lsb-core || true
 yum install -y mysql-connector-python || true
 yum install -y scsi-target-utils || true
-
-# There is a problem after yum update that python-requests and urllib3 packets conflict
-# with ones provided by pip. We need either to ship necessary rpm versions of these packages,
-# which is not done yet, or do the following trick
-
-pip uninstall requests -y || true
-pip uninstall requests -y || true
-pip install requests || true
-
-pip uninstall urllib3 -y || true
-pip uninstall urllib3 -y || true
-pip install urllib3 || true
 yum install -y vz-platform-release
 
 service mysqld stop || true
