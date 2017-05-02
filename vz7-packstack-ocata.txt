@@ -217,3 +217,4 @@ CONFIG_MONGODB_HOST=127.0.0.1
 # IP address of the server on which to install the Redis server.
 CONFIG_REDIS_HOST=127.0.0.1
 
+CONFIG_NAGIOS_INSTALL=n
