@@ -138,7 +138,7 @@ SUBNETPOOL_PREFIX_V4=$FIXED_RANGE
 ENABLED_SERVICES=key,rabbit,mysql,horizon,tempest
 
 # Enable Nova services
-ENABLED_SERVICES+=,n-api,n-crt,n-cond,n-sch,n-cauth,n-novnc,placement-api,placement-client,n-cell
+ENABLED_SERVICES+=,n-api,n-cond,n-sch,n-cauth,n-novnc,placement-api,placement-client,n-cell
 
 # Enable Glance services
 ENABLED_SERVICES+=,g-api,g-reg
