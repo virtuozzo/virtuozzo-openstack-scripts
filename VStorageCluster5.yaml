@@ -38,7 +38,6 @@ parameters:
     constraints:
       - length: { min: 1, max: 64 }
         description: cluster name must be between 1 and 64 characters
-      - allowed_pattern: '[a-zA-Z][a-zA-Z0-9]*'
         description: >
           cluster_name must begin with a letter and contain only alphanumeric
           characters
@@ -88,8 +87,23 @@ parameters:
     description: ID of Neutron sub network into which servers get deployed
     default: private-subnet
 
+  timeout:
+    type: number
+    description: Timeout for WaitCondition
+    default: 300
 
 resources:
+
+  wait_condition:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: wait_handle}
+      # Note, count of 5 vs 6 is due to duplicate signal ID 5 sent below
+      count: 1
+      timeout: {get_param: timeout}
+
+  wait_handle:
+    type: OS::Heat::WaitConditionHandle
 
   external_security_group:
     type: OS::Neutron::SecurityGroup
@@ -110,8 +124,7 @@ resources:
       description: Neutron security group for private networks.
       name: private-security-group
       rules: [
-        {remote_ip_prefix: 0.0.0.0/0,
-        protocol: all}]
+        {remote_ip_prefix: 0.0.0.0/0}]
 
   server1_port_external:
     type: OS::Neutron::Port
@@ -153,21 +166,21 @@ resources:
       flavor: { get_param: instance_type }
       key_name: { get_param: key_name }
       networks:
-        - port: { get_resource: server1_port_external }
         - port: { get_resource: server1_port_api }
         - port: { get_resource: server1_port_private }
         - port: { get_resource: server1_port_storage }
+        - port: { get_resource: server1_port_external }
       user_data:
         str_replace_strict:
           template: |
-            #!/bin/bash -v
+            #!/bin/bash -ve
 
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
             if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
+                mkdir -p /vstorage/cluster_name-cs
                 mount /dev/sdb /vstorage/cluster_name-cs
             fi
 
@@ -179,17 +192,21 @@ resources:
                 fi
             fi
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
             fi
 
-            systemctl start vstorage-mdsd.target
             systemctl start vstorage-csd.target
+
+            wc_notify --data-binary '{"status": "SUCCESS"}'
 
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [MetaDataServer1, networks, storage, 0] }
+            storage_ipaddr: { get_attr: [server1_port_storage, fixed_ips, 0, ip_address] }
+            wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
 
   server2_port_external:
     type: OS::Neutron::Port
@@ -226,26 +243,27 @@ resources:
 
   MetaDataServer2:
     type: OS::Nova::Server
+    depends_on: wait_condition
     properties:
       image: { get_param: image_id }
       flavor: { get_param: instance_type }
       key_name: { get_param: key_name }
       networks:
-        - port: { get_resource: server2_port_external }
         - port: { get_resource: server2_port_api }
         - port: { get_resource: server2_port_private }
         - port: { get_resource: server2_port_storage }
+        - port: { get_resource: server2_port_external }
       user_data:
         str_replace_strict:
           template: |
-            #!/bin/bash -v
+            #!/bin/bash -ve
 
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
             if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
+                mkdir -p /vstorage/cluster_name-cs
                 mount /dev/sdb /vstorage/cluster_name-cs
             fi
 
@@ -257,17 +275,18 @@ resources:
                 fi
             fi
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
             fi
 
-            systemctl start vstorage-mdsd.target
             systemctl start vstorage-csd.target
 
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [MetaDataServer2, networks, storage, 0] }
+            storage_ipaddr: { get_attr: [server2_port_storage, fixed_ips, 0, ip_address] }
 
   server3_port_external:
     type: OS::Neutron::Port
@@ -303,26 +322,27 @@ resources:
 
   MetaDataServer3:
     type: OS::Nova::Server
+    depends_on: wait_condition
     properties:
       image: { get_param: image_id }
       flavor: { get_param: instance_type }
       key_name: { get_param: key_name }
       networks:
-        - port: { get_resource: server3_port_external }
         - port: { get_resource: server3_port_api }
         - port: { get_resource: server3_port_private }
         - port: { get_resource: server3_port_storage }
+        - port: { get_resource: server3_port_external }
       user_data:
         str_replace_strict:
           template: |
-            #!/bin/bash -v
+            #!/bin/bash -ve
 
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
             if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
+                mkdir -p /vstorage/cluster_name-cs
                 mount /dev/sdb /vstorage/cluster_name-cs
             fi
 
@@ -334,17 +354,18 @@ resources:
                 fi
             fi
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
             fi
 
-            systemctl start vstorage-mdsd.target
             systemctl start vstorage-csd.target
 
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [MetaDataServer3, networks, storage, 0] }
+            storage_ipaddr: { get_attr: [server3_port_storage, fixed_ips, 0, ip_address] }
 
   chunk_server1_port_external:
     type: OS::Neutron::Port
@@ -381,32 +402,34 @@ resources:
 
   ChunkServer1:
     type: OS::Nova::Server
-    depends_on: [ MetaDataServer1, MetaDataServer2, MetaDataServer3 ]
+    depends_on: wait_condition
     properties:
       image: { get_param: image_id }
       flavor: { get_param: instance_type }
       key_name: { get_param: key_name }
       networks:
-        - port: { get_resource: chunk_server1_port_external }
         - port: { get_resource: chunk_server1_port_api }
         - port: { get_resource: chunk_server1_port_private }
         - port: { get_resource: chunk_server1_port_storage }
+        - port: { get_resource: chunk_server1_port_external }
       user_data:
         str_replace_strict:
           template: |
-            #!/bin/bash -v
+            #!/bin/bash -ve
 
             yum -y install vstorage-chunk-server vstorage-client
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
             if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
+                mkdir -p /vstorage/cluster_name-cs
                 mount /dev/sdb /vstorage/cluster_name-cs
             fi
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
+            echo cluster_password | vstorage -c cluster_name auth-node -P
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
             fi
 
             echo cluster_password | vstorage -c cluster_name auth-node -P
@@ -416,7 +439,7 @@ resources:
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [ChunkServer1, networks, storage, 0] }
+            storage_ipaddr: { get_attr: [chunk_server1_port_storage, fixed_ips, 0, ip_address] }
 
   chunk_server2_port_external:
     type: OS::Neutron::Port
@@ -452,32 +475,34 @@ resources:
 
   ChunkServer2:
     type: OS::Nova::Server
-    depends_on: [ MetaDataServer1, MetaDataServer2, MetaDataServer3 ]
+    depends_on: wait_condition
     properties:
       image: { get_param: image_id }
       flavor: { get_param: instance_type }
       key_name: { get_param: key_name }
       networks:
-        - port: { get_resource: chunk_server2_port_external }
         - port: { get_resource: chunk_server2_port_api }
         - port: { get_resource: chunk_server2_port_private }
         - port: { get_resource: chunk_server2_port_storage }
+        - port: { get_resource: chunk_server2_port_external }
       user_data:
         str_replace_strict:
           template: |
-            #!/bin/bash -v
+            #!/bin/bash -ve
 
             yum -y install vstorage-chunk-server vstorage-client
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
             if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
+                mkdir -p /vstorage/cluster_name-cs
                 mount /dev/sdb /vstorage/cluster_name-cs
             fi
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
+            echo cluster_password | vstorage -c cluster_name auth-node -P
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
             fi
 
             echo cluster_password | vstorage -c cluster_name auth-node -P
@@ -487,38 +512,6 @@ resources:
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [ChunkServer2, networks, storage, 0] }
-
-  ChunkServer3:
-    type: OS::Nova::Server
-    depends_on: [ MetaDataServer1, MetaDataServer2, MetaDataServer3 ]
-    properties:
-      image: { get_param: image_id }
-      flavor: { get_param: instance_type }
-      key_name: { get_param: key_name }
-      user_data:
-        str_replace_strict:
-          template: |
-            #!/bin/bash -v
-
-            yum -y install vstorage-chunk-server vstorage-client
-
-            if [[ ! -d /vstorage ]]; then
-                mkdir /vstorage
-                mount /dev/sdb /vstorage/cluster_name-cs
-            fi
-
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs
-            fi
-
-            echo cluster_password | vstorage -c cluster_name auth-node -P
-
-            systemctl start vstorage-csd.target
-
-          params:
-            cluster_name: { get_param: cluster_name }
-            cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [ChunkServer3, networks, storage, 0] }
+            storage_ipaddr: { get_attr: [chunk_server2_port_storage, fixed_ips, 0, ip_address] }
 
 
