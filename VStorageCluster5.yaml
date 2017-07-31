@@ -53,7 +53,7 @@ parameters:
     description: ID of Neutron network into which servers get deployed
     default: storage
 
-  sorage_subnet_id:
+  storage_subnet_id:
     type: string
     description: ID of Neutron sub network into which servers get deployed
     default: storage-subnet
