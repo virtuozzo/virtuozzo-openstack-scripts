@@ -1,0 +1,186 @@
+heat_template_version: 2017-02-24
+
+parameters:
+  key_name:
+    type: string
+
+  instance_type:
+    type: string
+
+  image_id:
+    type: string
+
+  cluster_name:
+    type: string
+
+  cluster_password:
+    type: string
+
+  wc_notify:
+    type: string
+
+  storage_net_id:
+    type: string
+
+  storage_subnet_id:
+    type: string
+
+  api_net_id:
+    type: string
+
+  api_subnet_id:
+    type: string
+
+  external_net_id:
+    type: string
+
+  external_subnet_id:
+    type: string
+
+  private_net_id:
+    type: string
+
+  private_subnet_id:
+    type: string
+
+resources:
+
+  external_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Neutron security group for external Network.
+      name: external-security-group
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 22,
+        port_range_max: 22},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: icmp}]
+
+  private_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Neutron security group for private networks.
+      name: private-security-group
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0}]
+
+  server1_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  server1_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 64
+
+  Server1:
+    type: OS::Nova::Server
+    properties:
+      flavor: { get_param: instance_type }
+      image: { get_param: image_id}
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: server1_port_api }
+        - port: { get_resource: server1_port_private }
+        - port: { get_resource: server1_port_storage }
+        - port: { get_resource: server1_port_external }
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+            yum -y reinstall virtuozzo-release
+            yum -y install vz-platform-release
+            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
+            yum -y install device-mapper-persistent-data lvm2 docker
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+            devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+
+            pvcreate -y /dev/$devname
+            vgcreate docker /dev/$devname
+            lvcreate --wipesignatures y -n thinpool docker -l 95%VG
+            lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
+
+            lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
+
+            cat > /etc/lvm/profile/docker-thinpool.profile << EOL
+            activation {
+              thin_pool_autoextend_threshold=80
+              thin_pool_autoextend_percent=20
+            }
+            EOL
+
+            lvchange --metadataprofile docker-thinpool docker/thinpool
+            lvs -o+seg_monitor
+
+            cat > /etc/docker/daemon.json << EOL
+            {
+                "storage-driver": "devicemapper",
+                "storage-opts": [
+                "dm.thinpooldev=/dev/mapper/docker-thinpool",
+                "dm.use_deferred_removal=true"
+                ]
+            }
+            systemctl start docker
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name-cs
+            fi
+
+            if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
+                echo cluster_password | vstorage -c cluster_name make-mds -I -a storage_ipaddr -r /vstorage/cluster_name-mds -P
+            else
+                if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
+                    vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                fi
+            fi
+
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [server1_port_storage, fixed_ips, 0, ip_address] }
+            wc_notify: { get_param: wc_notify }
+
+
