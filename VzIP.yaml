@@ -1,0 +1,554 @@
+heat_template_version: 2017-02-24
+
+description: >
+  A HOT to create Virtuozzo Infrastructure Platform Cluster based on VStorage consisting of
+  five instances: three of which are Meta Data servers (MDS) and all five instances are
+  chunk servers (CS).
+  VStorage is software defined distributed storage, which allows you to build fault-tolerant,
+  multi-machine storage clusters using existing or off-the-shelf hardware to enable highly
+  flexible, distributed storage that is scalable to your needs, and comes with built-in
+  replication to ensure the safety of your data. Read more at [1].
+  [1] https://virtuozzo.com/products/virtuozzo-storage/
+
+parameters:
+
+  key_name:
+    type: string
+    description: Name of a KeyPair to enable SSH access to the instance
+    default: test_key
+
+  instance_type:
+    type: string
+    description: Instance type for all servers
+    default: vzip
+    constraints:
+      - allowed_values: [vzip, virtuozzo]
+        description: instance_type must have an ephemeral disk
+
+  image_id:
+    type: string
+    description: >
+      Name or ID of the image to use for the VStorage servers.
+      They should be build from Virtuozzo distribution.
+      See disk image builder help.
+    default: vz7-vm
+
+  cluster_name:
+    type: string
+    description: VStorage cluster name
+    constraints:
+      - length: { min: 1, max: 64 }
+        description: cluster name must be between 1 and 64 characters
+        description: >
+          cluster_name must begin with a letter and contain only alphanumeric
+          characters
+
+  cluster_password:
+    type: string
+    description: Newly created VStorage Cluster admin account password
+    hidden: true
+
+  storage_net_id:
+    type: string
+    description: ID of Neutron network into which servers get deployed
+    default: storage
+
+  storage_subnet_id:
+    type: string
+    description: ID of Neutron sub network into which servers get deployed
+    default: storage-subnet
+
+  api_net_id:
+    type: string
+    description: ID of Neutron network into which servers get deployed
+    default: api
+
+  api_subnet_id:
+    type: string
+    description: ID of Neutron sub network into which servers get deployed
+    default: api-subnet
+
+  external_net_id:
+    type: string
+    description: ID of Neutron network into which servers get deployed
+    default: external
+
+  external_subnet_id:
+    type: string
+    description: ID of Neutron sub network into which servers get deployed
+    default: ext-subnet
+
+  private_net_id:
+    type: string
+    description: ID of Neutron network into which servers get deployed
+    default: private
+
+  private_subnet_id:
+    type: string
+    description: ID of Neutron sub network into which servers get deployed
+    default: private-subnet
+
+  timeout:
+    type: number
+    description: Timeout for WaitCondition
+    default: 300
+
+resources:
+
+  wait_condition:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: wait_handle}
+      count: 1
+      timeout: {get_param: timeout}
+
+  wait_condition2:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: wait_handle2}
+      count: 2
+      timeout: {get_param: timeout}
+
+  wait_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  wait_handle2:
+    type: OS::Heat::WaitConditionHandle
+
+  external_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Neutron security group for external Network.
+      name: external-security-group
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 22,
+        port_range_max: 22},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: icmp}]
+
+  private_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Neutron security group for private networks.
+      name: private-security-group
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0}]
+
+  server1_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  server1_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server1_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 64
+
+  MetaDataServer1:
+    type: OS::Nova::Server
+    properties:
+      flavor: { get_param: instance_type }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: server1_port_api }
+        - port: { get_resource: server1_port_private }
+        - port: { get_resource: server1_port_storage }
+        - port: { get_resource: server1_port_external }
+      block_device_mapping_v2: [{ boot_index : 0, image : { get_param: image_id }, device_type : "disk", disk_bus : "scsi", volume_size : 64},
+                                { ephemeral_size : 128, ephemeral_format : "ext4", device_type : "disk", disk_bus : "scsi" },
+                                { swap_size : 1024 },
+                                { boot_index : 1, volume_id : {get_resource: server1_volume}, device_type : "disk", disk_bus : "scsi"}
+                               ]
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+
+            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name-cs
+                lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+                devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+                mount /dev/$devname /vstorage/cluster_name-cs
+            fi
+
+            if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
+                echo cluster_password | vstorage -c cluster_name make-mds -I -a storage_ipaddr -r /vstorage/cluster_name-mds -P
+            else
+                if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
+                    vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                fi
+            fi
+
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [server1_port_storage, fixed_ips, 0, ip_address] }
+            wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
+
+  server2_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  server2_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server2_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server2_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+
+  MetaDataServer2:
+    type: OS::Nova::Server
+    depends_on: wait_condition
+    properties:
+      image: { get_param: image_id }
+      flavor: { get_param: instance_type }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: server2_port_api }
+        - port: { get_resource: server2_port_private }
+        - port: { get_resource: server2_port_storage }
+        - port: { get_resource: server2_port_external }
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+
+            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name-cs
+                lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+                devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+                mount /dev/$devname /vstorage/cluster_name-cs
+            fi
+
+            if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
+                echo cluster_password | vstorage -c cluster_name make-mds -I -a storage_ipaddr -r /vstorage/cluster_name-mds -P
+            else
+                if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
+                    vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                fi
+            fi
+
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [server2_port_storage, fixed_ips, 0, ip_address] }
+            wc_notify: { get_attr: ['wait_handle2', 'curl_cli'] }
+
+  server3_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  server3_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server3_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  server3_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  MetaDataServer3:
+    type: OS::Nova::Server
+    depends_on: wait_condition
+    properties:
+      image: { get_param: image_id }
+      flavor: { get_param: instance_type }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: server3_port_api }
+        - port: { get_resource: server3_port_private }
+        - port: { get_resource: server3_port_storage }
+        - port: { get_resource: server3_port_external }
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+
+            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name-cs
+                lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+                devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+                mount /dev/$devname /vstorage/cluster_name-cs
+            fi
+
+            if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
+                echo cluster_password | vstorage -c cluster_name make-mds -I -a storage_ipaddr -r /vstorage/cluster_name-mds -P
+            else
+                if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
+                    vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                fi
+            fi
+
+            systemctl start vstorage-mdsd.target
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [server3_port_storage, fixed_ips, 0, ip_address] }
+            wc_notify: { get_attr: ['wait_handle2', 'curl_cli'] }
+
+  chunk_server1_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  chunk_server1_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  chunk_server1_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  chunk_server1_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+
+  ChunkServer1:
+    type: OS::Nova::Server
+    depends_on: wait_condition2
+    properties:
+      image: { get_param: image_id }
+      flavor: { get_param: instance_type }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: chunk_server1_port_api }
+        - port: { get_resource: chunk_server1_port_private }
+        - port: { get_resource: chunk_server1_port_storage }
+        - port: { get_resource: chunk_server1_port_external }
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+
+            yum -y install vstorage-chunk-server vstorage-client
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name/mount
+                mkdir -p /vstorage/cluster_name-cs
+                lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+                devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+                mount /dev/$devname /vstorage/cluster_name-cs
+            fi
+
+            echo cluster_password | vstorage -c cluster_name auth-node -P
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            vstorage-mount /vstorage/cluster_name/mount -c cluster_name
+            vstorage -c cluster_name set-attr -R /vstorage/cluster_name/mount replicas=3:2
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [chunk_server1_port_storage, fixed_ips, 0, ip_address] }
+
+  chunk_server2_port_external:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+      security_groups: [{ get_resource: external_security_group }]
+
+  chunk_server2_port_api:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: api_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: api_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  chunk_server2_port_private:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: private_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  chunk_server2_port_storage:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: storage_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: storage_subnet_id }
+      security_groups: [{ get_resource: private_security_group }]
+
+  ChunkServer2:
+    type: OS::Nova::Server
+    depends_on: wait_condition2
+    properties:
+      image: { get_param: image_id }
+      flavor: { get_param: instance_type }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: chunk_server2_port_api }
+        - port: { get_resource: chunk_server2_port_private }
+        - port: { get_resource: chunk_server2_port_storage }
+        - port: { get_resource: chunk_server2_port_external }
+      user_data:
+        str_replace_strict:
+          template: |
+            #!/bin/bash -ve
+
+            yum -y install vstorage-chunk-server vstorage-client
+
+            iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
+
+            if [[ ! -d /vstorage ]]; then
+                mkdir -p /vstorage/cluster_name-cs
+                devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+                lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
+                mount /dev/$devname /vstorage/cluster_name-cs
+            fi
+
+            echo cluster_password | vstorage -c cluster_name auth-node -P
+
+            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
+                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            fi
+
+            systemctl start vstorage-csd.target
+
+            vstorage-mount /vstorage/cluster_name/mount -c cluster_name
+            vstorage -c cluster_name set-attr -R /vstorage/cluster_name/mount replicas=3:2
+
+          params:
+            cluster_name: { get_param: cluster_name }
+            cluster_password: { get_param: cluster_password }
+            storage_ipaddr: { get_attr: [chunk_server2_port_storage, fixed_ips, 0, ip_address] }
+
+
