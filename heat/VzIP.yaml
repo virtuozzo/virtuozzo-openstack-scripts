@@ -110,20 +110,21 @@ resources:
       resource:
         type: VZ::Storage::Server
         properties:
-            image_id: { get_param: image_id}
-            key_name: { get_param: key_name}
-            instance_type: {get_param: instance_type}
-            storage_net_id: {get_param: storage_net_id}
-            storage_subnet_id: {get_param: storage_subnet_id}
-            api_net_id: {get_param: api_net_id}
-            api_subnet_id: {get_param: api_subnet_id}
-            external_net_id: {get_param: external_net_id}
-            external_subnet_id: {get_param: external_subnet_id}
-            private_net_id: {get_param: private_net_id}
-            private_subnet_id: {get_param: private_subnet_id}
-            cluster_password: { get_param: cluster_password}
-            cluster_name: { get_param: cluster_name}
-            wc_notify: 'echo'
+          name: "asg"
+          image_id: { get_param: image_id}
+          key_name: { get_param: key_name}
+          instance_type: {get_param: instance_type}
+          storage_net_id: {get_param: storage_net_id}
+          storage_subnet_id: {get_param: storage_subnet_id}
+          api_net_id: {get_param: api_net_id}
+          api_subnet_id: {get_param: api_subnet_id}
+          external_net_id: {get_param: external_net_id}
+          external_subnet_id: {get_param: external_subnet_id}
+          private_net_id: {get_param: private_net_id}
+          private_subnet_id: {get_param: private_subnet_id}
+          cluster_password: { get_param: cluster_password}
+          cluster_name: { get_param: cluster_name}
+          wc_notify: 'echo'
       min_size: 2
       desired_capacity: 4
       max_size: 9
@@ -131,6 +132,7 @@ resources:
   FirstServer:
     type: VZ::Storage::Server
     properties:
+      name: "first"
       image_id: { get_param: image_id}
       key_name: { get_param: key_name}
       instance_type: {get_param: instance_type}
@@ -183,10 +185,6 @@ outputs:
     description: >
       This is a list of server names that are part of the group.
     value: {get_attr: [AutoScalingGroup, outputs_list, name]}
-  networks:
-    description: >
-      This is a map of server resources and their networks.
-    value: {get_attr: [AutoScalingGroup, outputs, networks]}
   server_ips:
     description: >
       This is a list of first ip addresses of the servers in the group

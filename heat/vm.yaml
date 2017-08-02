@@ -1,6 +1,9 @@
 heat_template_version: 2017-02-24
 
 parameters:
+  name:
+    type: string
+
   key_name:
     type: string
 
@@ -98,17 +101,24 @@ resources:
         - subnet_id: { get_param: storage_subnet_id }
       security_groups: [{ get_resource: private_security_group }]
 
-  server1_volume:
-    type: OS::Cinder::Volume
+  rand:
+    type: OS::Heat::RandomString
     properties:
-      size: 64
+      length: 4
+      sequence: lowercase
 
-  Server1:
+  Server:
     type: OS::Nova::Server
     properties:
       flavor: { get_param: instance_type }
       image: { get_param: image_id}
       key_name: { get_param: key_name }
+      name:
+        str_replace:
+          template: vm-rand
+          params:
+            rand: {get_resource: rand}
+            vm: { get_param: name }
       networks:
         - port: { get_resource: server1_port_api }
         - port: { get_resource: server1_port_private }
@@ -135,17 +145,17 @@ resources:
 
             lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
 
-            cat > /etc/lvm/profile/docker-thinpool.profile << EOL
+            cat > /etc/lvm/profile/docker-thinpool.profile <<EOF
             activation {
               thin_pool_autoextend_threshold=80
               thin_pool_autoextend_percent=20
             }
-            EOL
+            EOF
 
             lvchange --metadataprofile docker-thinpool docker/thinpool
             lvs -o+seg_monitor
 
-            cat > /etc/docker/daemon.json << EOL
+            cat > /etc/docker/daemon.json <<EOF
             {
                 "storage-driver": "devicemapper",
                 "storage-opts": [
@@ -153,6 +163,7 @@ resources:
                 "dm.use_deferred_removal=true"
                 ]
             }
+            EOF
             systemctl start docker
 
             if [[ ! -d /vstorage ]]; then
