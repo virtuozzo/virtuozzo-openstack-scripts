@@ -118,7 +118,7 @@ resources:
         str_replace_strict:
           template: |
             #!/bin/bash -ve
-            yum -y reinstall virtuozzo-release
+            sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
             yum -y install vz-platform-release
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
             yum -y install device-mapper-persistent-data lvm2 docker

@@ -1,9 +1,8 @@
 heat_template_version: 2017-02-24
 
 description: >
-  A HOT to create Virtuozzo Infrastructure Platform Cluster based on VStorage consisting of
-  five instances: three of which are Meta Data servers (MDS) and all five instances are
-  chunk servers (CS).
+  A HOT to create Virtuozzo Storage (VStorage) Cluster consisting of five instances: three
+  of wich are Meta Data servers (MDS) and all five instances are chunk servers (CS).
   VStorage is software defined distributed storage, which allows you to build fault-tolerant,
   multi-machine storage clusters using existing or off-the-shelf hardware to enable highly
   flexible, distributed storage that is scalable to your needs, and comes with built-in
