@@ -135,6 +135,11 @@ resources:
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
+            devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep swap | grep -v SWAP | awk '{print $1}')
+            if [[ "$devname" != "" ]]; then
+                swapon /dev/$devname
+            fi
+
             lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
             devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
 
