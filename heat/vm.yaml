@@ -129,9 +129,12 @@ resources:
           template: |
             #!/bin/bash -ve
             sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
+            sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
             yum -y install vz-platform-release
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
-            yum -y install device-mapper-persistent-data lvm2 docker
+            yum -y install device-mapper-persistent-data lvm2 docker openssh-clients
+
+            echo cluster_password | passwd root --stdin
 
             iptables -A INPUT -s storage_ipaddr/24 -m comment --comment "001 vstorage incoming" -j ACCEPT
 
