@@ -69,7 +69,7 @@ resources:
       rules: [
         {remote_ip_prefix: 0.0.0.0/0}]
 
-  server1_port_external:
+  port_external:
     type: OS::Neutron::Port
     properties:
       network_id: { get_param: external_net_id }
@@ -77,7 +77,7 @@ resources:
         - subnet_id: { get_param: external_subnet_id }
       security_groups: [{ get_resource: external_security_group }]
 
-  server1_port_api:
+  port_api:
     type: OS::Neutron::Port
     properties:
       network_id: { get_param: api_net_id }
@@ -85,7 +85,7 @@ resources:
         - subnet_id: { get_param: api_subnet_id }
       security_groups: [{ get_resource: private_security_group }]
 
-  server1_port_private:
+  port_private:
     type: OS::Neutron::Port
     properties:
       network_id: { get_param: private_net_id }
@@ -93,7 +93,7 @@ resources:
         - subnet_id: { get_param: private_subnet_id }
       security_groups: [{ get_resource: private_security_group }]
 
-  server1_port_storage:
+  port_storage:
     type: OS::Neutron::Port
     properties:
       network_id: { get_param: storage_net_id }
@@ -101,13 +101,7 @@ resources:
         - subnet_id: { get_param: storage_subnet_id }
       security_groups: [{ get_resource: private_security_group }]
 
-  rand:
-    type: OS::Heat::RandomString
-    properties:
-      length: 4
-      sequence: lowercase
-
-  Server:
+  server:
     type: OS::Nova::Server
     properties:
       flavor: { get_param: instance_type }
@@ -115,15 +109,16 @@ resources:
       key_name: { get_param: key_name }
       name:
         str_replace:
-          template: vm-rand
+          template: cluster-vm
           params:
-            rand: {get_resource: rand}
+            cluster: {get_param: cluster_name}
             vm: { get_param: name }
       networks:
-        - port: { get_resource: server1_port_api }
-        - port: { get_resource: server1_port_private }
-        - port: { get_resource: server1_port_storage }
-        - port: { get_resource: server1_port_external }
+        - port: { get_resource: port_api }
+        - port: { get_resource: port_private }
+        - port: { get_resource: port_storage }
+        - port: { get_resource: port_external }
+      user_data_format: SOFTWARE_CONFIG
       user_data:
         str_replace_strict:
           template: |
@@ -199,7 +194,7 @@ resources:
           params:
             cluster_name: { get_param: cluster_name }
             cluster_password: { get_param: cluster_password }
-            storage_ipaddr: { get_attr: [server1_port_storage, fixed_ips, 0, ip_address] }
+            storage_ipaddr: { get_attr: [port_storage, fixed_ips, 0, ip_address] }
             wc_notify: { get_param: wc_notify }
 
 
