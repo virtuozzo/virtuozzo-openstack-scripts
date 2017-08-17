@@ -1,8 +1,8 @@
 heat_template_version: 2017-02-24
 
 description: >
-  A HOT to create Virtuozzo Storage (VStorage) Cluster consisting of five instances: three
-  of wich are Meta Data servers (MDS) and all five instances are chunk servers (CS).
+  A Heat Orchestration Template to create Virtuozzo Infrastructure Platform based on
+  Virtuozzo Storage (VStorage) Cluster.
   VStorage is software defined distributed storage, which allows you to build fault-tolerant,
   multi-machine storage clusters using existing or off-the-shelf hardware to enable highly
   flexible, distributed storage that is scalable to your needs, and comes with built-in
@@ -86,10 +86,21 @@ parameters:
     description: ID of Neutron sub network into which servers get deployed
     default: private-subnet
 
-  timeout:
+  timeout1:
     type: number
-    description: Timeout for WaitCondition
-    default: 300
+    description: Timeout for WaitCondition for First Server
+    default: 200
+
+  timeout2:
+    type: number
+    description: Timeout for WaitCondition for Resource Group
+    default: 600
+
+
+  cluster_size:
+    type: number
+    description: The Number of VMs in cluster
+    default: 4
 
 resources:
 
@@ -98,19 +109,82 @@ resources:
     properties:
       handle: { get_resource: wait_handle }
       count: 1
-      timeout: {get_param: timeout}
+      timeout: {get_param: timeout1}
 
   wait_handle:
     type: OS::Heat::WaitConditionHandle
 
-  AutoScalingGroup:
-    type: OS::Heat::AutoScalingGroup
+  wait_handle_group:
+    type: OS::Heat::WaitConditionHandle
+
+  wait_condition_group:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: { get_resource: wait_handle_group }
+      count: {get_param: cluster_size}
+      timeout: {get_param: timeout2}
+
+  key_gen:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      inputs:
+        - name: user_name
+      outputs:
+        - name: id_rsa_pub
+      group: script
+      config: |
+        #!/bin/bash
+        su - ${user_name} << EOF > ${heat_outputs_path}.id_rsa_pub
+        test -f .ssh/id_rsa.pub || ssh-keygen -q -t rsa -N "" -f .ssh/id_rsa
+        cat .ssh/id_rsa.pub
+        EOF
+
+  key_add:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      inputs:
+        - name: id_rsa_pub
+        - name: user_name
+      outputs:
+        - name: hostname
+      group: script
+      config: |
+        #!/bin/bash
+        echo "${id_rsa_pub}" | su - $user_name -c 'tee -a .ssh/authorized_keys'
+        hostname > ${heat_outputs_path}.hostname
+
+  do_key_gen:
+    type: OS::Heat::SoftwareDeployment
+    depends_on: wait_condition_group
+    properties:
+      input_values:
+        user_name: root
+      config:
+        get_resource: key_gen
+      server:
+        get_resource: first_server
+
+  do_key_add:
+    type: OS::Heat::SoftwareDeploymentGroup
+    properties:
+      input_values:
+        user_name: root
+        id_rsa_pub:
+          get_attr: [do_key_gen, id_rsa_pub]
+      config:
+        get_resource: key_add
+      servers:
+        get_attr: [server_group, refs_map]
+
+  server_group:
+    type: OS::Heat::ResourceGroup
     depends_on: wait_condition
     properties:
-      resource:
+      count: { get_param: cluster_size }
+      resource_def:
         type: VZ::Storage::Server
         properties:
-          name: "asg"
+          name: slave%index%
           image_id: { get_param: image_id}
           key_name: { get_param: key_name}
           instance_type: {get_param: instance_type}
@@ -124,15 +198,12 @@ resources:
           private_subnet_id: {get_param: private_subnet_id}
           cluster_password: { get_param: cluster_password}
           cluster_name: { get_param: cluster_name}
-          wc_notify: 'echo'
-      min_size: 2
-      desired_capacity: 4
-      max_size: 9
+          wc_notify: { get_attr: ['wait_handle_group', 'curl_cli'] }
 
-  FirstServer:
+  first_server:
     type: VZ::Storage::Server
     properties:
-      name: "first"
+      name: "master"
       image_id: { get_param: image_id}
       key_name: { get_param: key_name}
       instance_type: {get_param: instance_type}
@@ -148,46 +219,14 @@ resources:
       cluster_name: { get_param: cluster_name}
       wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
 
-  scale_up_policy:
-    type: OS::Heat::ScalingPolicy
-    properties:
-      adjustment_type: change_in_capacity
-      auto_scaling_group_id: {get_resource: AutoScalingGroup}
-      cooldown: 60
-      scaling_adjustment: 1
-
-  scale_down_policy:
-    type: OS::Heat::ScalingPolicy
-    properties:
-      adjustment_type: change_in_capacity
-      auto_scaling_group_id: {get_resource: AutoScalingGroup}
-      cooldown: 60
-      scaling_adjustment: '-1'
-
 outputs:
-  scale_up_url:
-    description: >
-      This URL is the webhook to scale up the group.  You can invoke
-      the scale-up operation by doing an HTTP POST to this URL; no
-      body nor extra headers are needed.
-    value: {get_attr: [scale_up_policy, alarm_url]}
-  scale_dn_url:
-    description: >
-      This URL is the webhook to scale down the group.  You can invoke
-      the scale-down operation by doing an HTTP POST to this URL; no
-      body nor extra headers are needed.
-    value: {get_attr: [scale_down_policy, alarm_url]}
-  asg_size:
-    description: >
-      This is the current size of the auto scaling group.
-    value: {get_attr: [AutoScalingGroup, current_size]}
   server_list:
     description: >
       This is a list of server names that are part of the group.
-    value: {get_attr: [AutoScalingGroup, outputs_list, name]}
-  server_ips:
+    value: {get_attr: [server_group, outputs_list, name]}
+  server_ip:
     description: >
       This is a list of first ip addresses of the servers in the group
       for a specified network.
-    value: {get_attr: [AutoScalingGroup, outputs_list, networks, {get_param: network}, 0]}
+    value: {get_attr: [first_server, outputs_list, networks, {get_param: network}, 0]}
 
