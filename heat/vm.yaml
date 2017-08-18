@@ -141,7 +141,7 @@ resources:
 
             cat > /etc/docker/daemon.json <<EOF
             {
-                "storage-driver": "overlay2"
+                "storage-driver": "overlay2",
                 "storage-opts": [
                   "overlay2.override_kernel_check=true"
                 ]
@@ -154,7 +154,7 @@ resources:
 
             if [[ ! -d /vstorage ]]; then
                 mkdir -p /vstorage/cluster_name-cs
-                mount /vstorage/cluster_name-cs /dev/$devname
+                mount /dev/$devname /vstorage/cluster_name-cs
             fi
 
             if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
