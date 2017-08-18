@@ -125,9 +125,10 @@ resources:
             #!/bin/bash -ve
             sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
             sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
-            yum -y install vz-platform-release
+            yum -y install vz-platform-release deltarpm
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
-            yum -y install device-mapper-persistent-data lvm2 docker openssh-clients
+            yum -y install docker openssh-clients
+            yum -y install os-apply-config os-cloud-config os-collect-config os-net-config os-prober os-refresh-config heat-cfntools
 
             echo cluster_password | passwd root --stdin
 
