@@ -89,7 +89,7 @@ parameters:
   timeout1:
     type: number
     description: Timeout for WaitCondition for First Server
-    default: 200
+    default: 400
 
   timeout2:
     type: number
