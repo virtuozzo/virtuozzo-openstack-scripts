@@ -127,8 +127,8 @@ resources:
             sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
             yum -y install vz-platform-release deltarpm
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
-            yum -y install docker openssh-clients
-            yum -y install os-apply-config os-cloud-config os-collect-config os-net-config os-prober os-refresh-config heat-cfntools
+            yum -y install docker openssh-clients jq
+            #yum -y install os-apply-config os-cloud-config os-collect-config os-net-config os-prober os-refresh-config heat-cfntools
 
             echo cluster_password | passwd root --stdin
 
@@ -181,4 +181,8 @@ resources:
             storage_ipaddr: { get_attr: [port_storage, fixed_ips, 0, ip_address] }
             wc_notify: { get_param: wc_notify }
 
+outputs:
+  server_id:
+    value: {get_resource: server}
+    description: server id
 
