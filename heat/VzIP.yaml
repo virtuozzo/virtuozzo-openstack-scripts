@@ -158,10 +158,8 @@ resources:
     properties:
       input_values:
         user_name: root
-      config:
-        get_resource: key_gen
-      server:
-        get_resource: { get_attr: [first_server, server_id] }
+      config: { get_resource: key_gen }
+      server: { get_attr: [first_server, server_id] }
 
   do_key_add:
     type: OS::Heat::SoftwareDeploymentGroup
@@ -169,7 +167,7 @@ resources:
     properties:
       input_values:
         user_name: root
-        id_rsa_pub: { get_attr: [first_server, id_rsa_pub] }
+        id_rsa_pub: { get_attr: [do_key_gen, id_rsa_pub] }
       config: { get_resource: key_add }
       servers: { get_attr: [server_group, attributes, server_id] }
 
