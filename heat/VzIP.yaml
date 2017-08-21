@@ -94,7 +94,7 @@ parameters:
   timeout2:
     type: number
     description: Timeout for WaitCondition for Resource Group
-    default: 600
+    default: 1800
 
 
   cluster_size:
