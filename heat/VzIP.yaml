@@ -155,26 +155,23 @@ resources:
 
   do_key_gen:
     type: OS::Heat::SoftwareDeployment
-    depends_on: wait_condition_group
     properties:
       input_values:
         user_name: root
       config:
         get_resource: key_gen
       server:
-        get_resource: first_server
+        get_resource: { get_attr: [first_server, server_id] }
 
   do_key_add:
     type: OS::Heat::SoftwareDeploymentGroup
+    depends_on: wait_condition_group
     properties:
       input_values:
         user_name: root
-        id_rsa_pub:
-          get_attr: [do_key_gen, id_rsa_pub]
-      config:
-        get_resource: key_add
-      servers:
-        get_attr: [server_group, refs_map]
+        id_rsa_pub: { get_attr: [first_server, id_rsa_pub] }
+      config: { get_resource: key_add }
+      servers: { get_attr: [server_group, attributes, server_id] }
 
   server_group:
     type: OS::Heat::ResourceGroup
