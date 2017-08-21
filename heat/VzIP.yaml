@@ -220,10 +220,18 @@ outputs:
   server_list:
     description: >
       This is a list of server names that are part of the group.
-    value: {get_attr: [server_group, outputs_list, name]}
+    value: {get_attr: [server_group, show]}
   server_ip:
     description: >
       This is a list of first ip addresses of the servers in the group
       for a specified network.
-    value: {get_attr: [first_server, outputs_list, networks, {get_param: network}, 0]}
-
+    value: {get_attr: [first_server, networks, {get_param: storage_net_id}]}
+  do_key_add_status:
+    description: Status code of configuration execution.
+    value: { get_attr: [do_key_add, deploy_status_code] }
+  do_key_add_stdout:
+    description: Standard output captured from the configuration execution.
+    value: { get_attr: [do_key_add, deploy_stdout] }
+  do_key_add_stderr:
+    description: Standard error captured from the configuration execution.
+    value: { get_attr: [do_key_add, deploy_stderr] }
