@@ -105,10 +105,6 @@ resources:
             sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
             sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
 
-            yum -y install vz-platform-release
-
-            systemctl start os-collect-config
-
             cat > /etc/yum.repos.d/vz-platform-release.repo <<EOF
             [vz-platform]
             name=Virtuozzo Platform
