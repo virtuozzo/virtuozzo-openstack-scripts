@@ -104,10 +104,24 @@ resources:
             #!/bin/bash -ve
             sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
             sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
-            yum -y install vz-platform-release deltarpm
+
+            yum -y install vz-platform-release
+
+            systemctl start os-collect-config
+
+            cat > /etc/yum.repos.d/vz-platform-release.repo <<EOF
+            [vz-platform]
+            name=Virtuozzo Platform
+            #mirrorlist=http://repo.virtuozzo.com/vz-platform/mirrorlists/1.0/releases-os.mirrorlist
+            ##baseurl=http://repo.virtuozzo.com/vz-platform/releases/1.0/x86_64/os/
+            baseurl=http://kojistorage.eng.sw.ru/mash/os-ocata-vz7-rtm/latest/x86_64/os/
+            priority=49
+            enabled=1
+            gpgcheck=1
+            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Virtuozzo-Platform-1
+            EOF
+
             yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
-            yum -y install docker openssh-clients jq
-            #yum -y install os-apply-config os-cloud-config os-collect-config os-net-config os-prober os-refresh-config heat-cfntools
 
             echo cluster_password | passwd root --stdin
 
