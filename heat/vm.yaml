@@ -118,36 +118,49 @@ resources:
                 swapon /dev/$devname
             fi
 
-            cat > /etc/docker/daemon.json <<EOF
-            {
-                "storage-driver": "overlay2",
-                "storage-opts": [
-                  "overlay2.override_kernel_check=true"
-                ]
-            }
-            EOF
-            systemctl start docker
-
             lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL
             devname=$(lsblk -a -o NAME,FSTYPE,MOUNTPOINT,LABEL | grep ephemeral | awk '{print $1}')
+            csdir=/vstorage/cluster_name-cs
 
-            if [[ ! -d /vstorage ]]; then
-                mkdir -p /vstorage/cluster_name-cs
-                mount /dev/$devname /vstorage/cluster_name-cs
+            if [[ ! -d $csdir ]]; then
+            echo "Device name: $devname"
+            mkdir -p $csdir
+            unitname=$(systemd-escape -p --suffix=mount "$csdir")
+            echo "Unit name: $unitname"
+
+            cat > /etc/systemd/system/$unitname <<EOF
+            [Unit]
+            Description=VStorage Chunk Server Disk Mount
+            Before=vstorage-csd.target
+            [Mount]
+            What=/dev/$devname
+            Where=$csdir
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+
+            systemctl daemon-reload
+            systemctl start "$unitname"
             fi
 
             if ! echo cluster_password | vstorage -c cluster_name auth-node -P ; then
+                echo "Creating a new cluster 'cluster_name'..."
                 echo cluster_password | vstorage -c cluster_name make-mds -I -a storage_ipaddr -r /vstorage/cluster_name-mds -P
+                echo "Creating a new cluster 'cluster_name'...done"
             else
                 if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
+                    echo "Adding a new MDS to cluster 'cluster_name'..."
                     vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                    echo "Adding a new MDS to cluster 'cluster_name'...done"
                 fi
             fi
 
             systemctl start vstorage-mdsd.target
 
-            if ! vstorage -c cluster_name list-services -C | grep -q /vstorage/cluster_name-cs/data; then
-                vstorage -c cluster_name make-cs -r /vstorage/cluster_name-cs/data
+            if ! vstorage -c cluster_name list-services -C | grep -q $csdir/data; then
+                echo "Adding a new CS to cluster 'cluster_name'..."
+                vstorage -c cluster_name make-cs -r $csdir/data
+                echo "Adding a new CS to cluster 'cluster_name'...done"
             fi
 
             systemctl start vstorage-csd.target
