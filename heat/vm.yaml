@@ -48,58 +48,37 @@ parameters:
 
 resources:
 
-  external_security_group:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      description: Neutron security group for external Network.
-      name: external-security-group
-      rules: [
-        {remote_ip_prefix: 0.0.0.0/0,
-        protocol: tcp,
-        port_range_min: 22,
-        port_range_max: 22},
-        {remote_ip_prefix: 0.0.0.0/0,
-        protocol: icmp}]
-
-  private_security_group:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      description: Neutron security group for private networks.
-      name: private-security-group
-      rules: [
-        {remote_ip_prefix: 0.0.0.0/0}]
-
   port_external:
     type: OS::Neutron::Port
     properties:
+      port_security_enabled: False
       network_id: { get_param: external_net_id }
       fixed_ips:
         - subnet_id: { get_param: external_subnet_id }
-      security_groups: [{ get_resource: external_security_group }]
 
   port_api:
     type: OS::Neutron::Port
     properties:
+      port_security_enabled: False
       network_id: { get_param: api_net_id }
       fixed_ips:
         - subnet_id: { get_param: api_subnet_id }
-      security_groups: [{ get_resource: private_security_group }]
 
   port_private:
     type: OS::Neutron::Port
     properties:
+      port_security_enabled: False
       network_id: { get_param: private_net_id }
       fixed_ips:
         - subnet_id: { get_param: private_subnet_id }
-      security_groups: [{ get_resource: private_security_group }]
 
   port_storage:
     type: OS::Neutron::Port
     properties:
+      port_security_enabled: False
       network_id: { get_param: storage_net_id }
       fixed_ips:
         - subnet_id: { get_param: storage_subnet_id }
-      security_groups: [{ get_resource: private_security_group }]
 
   server:
     type: OS::Nova::Server
