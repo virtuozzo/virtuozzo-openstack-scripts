@@ -190,4 +190,7 @@ outputs:
   host_name:
     value: {get_attr: [server, name] }
     description: server hostname
+  ip_address:
+    value: { get_attr: [port_api, fixed_ips, 0, ip_address] }
+    description: server API network IP address
 

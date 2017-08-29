@@ -2,9 +2,6 @@
 
 yum install -y kolla-ansible
 
-echo ${host_names} >> /etc/hosts
-ssh-keyscan ${host_names} >> /root/.ssh/known_hosts
-
 cat > /etc/kolla/globals.yml <<EOF
 ---
 #########################
@@ -21,7 +18,7 @@ docker_namespace: "kolla"
 ####################
 # This should be a VIP, an unused IP on your network that will float between
 # the hosts running keepalived for high availability.
-kolla_internal_vip_address: "${vip_address}"
+kolla_internal_vip_address: "$vip_address"
 
 # This interface is what all your API services will be bound to by default.
 # This interface must contain an IPv4 address.
@@ -51,10 +48,10 @@ tuninel_interface: "eth1"
 # Virtuozzo Storage options
 ###########################
 # Virtuozzo Storage cluster name. Required option.
-vstorage_cluster_name: "${cluster_name}"
+vstorage_cluster_name: "$cluster_name"
 
 # Virtuozzo Storage cluster password. Required option.
-vstorage_cluster_password: "${cluster_password}"
+vstorage_cluster_password: "$cluster_password"
 
 # Enables shaman service for high availability of instances.
 # Enabled by default.
@@ -110,9 +107,9 @@ vstorage_cluster_password: "${cluster_password}"
 EOF
 
 kolla-genpwd
-kolla-inventory gen --key /root/.ssh/ansible --control ${host_names} --network ${host_names} --compute ${host_names} --storage ${host_names} --monitoring ${host_names} -- myinventory
+kolla-inventory gen --key /root/.ssh/ansible --control $host_names --network $host_names --compute $host_names --storage $master_host --monitoring $master_host -- myinventory
 kolla-ansible -i myinventory bootstrap-servers
 kolla-ansible -i myinventory prechecks
 kolla-ansible -i myinventory deploy
 kolla-ansible post-deploy
-cat /etc/kolla/admin-openrc.sh
+cat /etc/kolla/admin-openrc.sh >  ${heat_outputs_path}.admin-openrc

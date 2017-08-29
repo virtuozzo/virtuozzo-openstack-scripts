@@ -96,7 +96,6 @@ parameters:
     description: Timeout for WaitCondition for Resource Group
     default: 1800
 
-
   cluster_size:
     type: number
     description: The Number of VMs in cluster
@@ -146,13 +145,10 @@ resources:
       inputs:
         - name: id_rsa_pub
         - name: user_name
-      outputs:
-        - name: hostname
       group: script
       config: |
         #!/bin/bash
         echo "${id_rsa_pub}" | su - $user_name -c 'tee -a .ssh/authorized_keys'
-        hostname > ${heat_outputs_path}.hostname
 
   do_key_gen:
     type: OS::Heat::SoftwareDeployment
@@ -173,10 +169,25 @@ resources:
       config: { get_resource: key_add }
       servers: { get_attr: [server_group, attributes, server_id] }
 
+  deploy_vzip_prepare:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      inputs:
+        - name: master_host
+        - name: master_ip_address
+        - name: host_names
+        - name: ip_addresses
+      outputs:
+        - name: master_host
+        - name: host_names
+      group: script
+      config: { get_file: vzip_install_prepare.py }
+
   deploy_vzip:
     type: OS::Heat::SoftwareConfig
     properties:
       inputs:
+        - name: master_host
         - name: host_names
         - name: vip_address
         - name: cluster_name
@@ -194,17 +205,31 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: api_subnet_id }
 
-  do_deploy_vzip:
+  do_deploy_vzip_prepare:
     type: OS::Heat::SoftwareDeployment
     depends_on: do_key_add
     properties:
       input_values:
+        master_host: { get_attr: [first_server, host_name] }
+        master_ip_address: { get_attr: [first_server, ip_address] }
         host_names: { get_attr: [server_group, attributes, host_name] }
+        ip_addresses: { get_attr: [server_group, attributes, ip_address] }
+      config: { get_resource: deploy_vzip_prepare }
+      server: { get_attr: [first_server, server_id] }
+
+  do_deploy_vzip:
+    type: OS::Heat::SoftwareDeployment
+    depends_on: do_deploy_vzip_prepare
+    properties:
+      input_values:
+        master_host: { get_attr: [do_deploy_vzip_prepare, master_host] }
+        host_names: { get_attr: [do_deploy_vzip_prepare, host_names] }
         vip_address: { get_attr: [port_api, fixed_ips, 0, ip_address] }
         cluster_name: { get_param: cluster_name }
         cluster_password: { get_param: cluster_password}
       config: { get_resource: deploy_vzip }
       server: { get_attr: [first_server, server_id] }
+
 
   server_group:
     type: OS::Heat::ResourceGroup
