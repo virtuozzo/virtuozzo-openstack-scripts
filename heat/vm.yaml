@@ -187,4 +187,7 @@ outputs:
   server_id:
     value: {get_resource: server}
     description: server id
+  host_name:
+    value: {get_attr: [server, name] }
+    description: server hostname
 

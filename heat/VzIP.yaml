@@ -184,29 +184,7 @@ resources:
       outputs:
         - name: admin-openrc
       group: script
-      config: |
-        #!/bin/bash
-        yum install -y kolla-ansible
-        cp -R /usr/share/kolla-ansible/etc_examples/kolla/ /etc/kolla
-        echo ${host_names} >> /etc/hosts
-        ssh-keyscan vstor-heat-slave1 >> /root/.ssh/known_hosts
-
-        sed -i 's/#docker_registry/docker_registry/' /etc/kolla/globals.yml
-        sed -i 's/kolla_internal_vip_address: \"10.10.10.254\"/kolla_internal_vip_address: \"${vip_address}\"/' /etc/kolla/globals.yml
-        sed -i 's/vstorage_cluster_name: \"mycluster\"/vstorage_cluster_name: \"${cluster_name}\"/' /etc/kolla/globals.yml
-        sed -i 's/vstorage_cluster_password: \"mypassword\"/vstorage_cluster_password: \"${cluster_password}\"/' /etc/kolla/globals.yml
-        sed -i 's/#tunnel_interface: \"{{ network_interface }}\"/tunnel_interface: \"eth1\"/' /etc/kolla/globals.yml
-        sed -i 's/#storage_interface: \"{{ network_interface }}\"/storage_interface: \"eth2\"/' /etc/kolla/globals.yml
-        sed -i 's/neutron_external_interface: \"eth1\"/neutron_external_interface: \"eth3\"/' /etc/kolla/globals.yml
-        sed -i 's/--storage-driver overlay/ /' /etc/systemd/system/docker.service.d/kolla.conf
-        kolla-genpwd
-        kolla-inventory gen --key /root/.ssh/ansible --control ${host_names} --network ${host_names} --compute ${host_names} --storage ${host_names} --monitoring ${host_names} -- myinventory
-        kolla-ansible -i myinventory bootstrap-servers
-        kolla-ansible -i myinventory prechecks
-        kolla-ansible -i myinventory deploy
-        kolla-ansible post-deploy
-        cat /etc/kolla/admin-openrc.sh
-        EOF
+      config: { get_file: vzip_install.sh }
 
   port_api:
     type: OS::Neutron::Port
@@ -221,7 +199,7 @@ resources:
     depends_on: do_key_add
     properties:
       input_values:
-        host_names: { get_attr: [server_group, attributes, hostname] }
+        host_names: { get_attr: [server_group, attributes, host_name] }
         vip_address: { get_attr: [port_api, fixed_ips, 0, ip_address] }
         cluster_name: { get_param: cluster_name }
         cluster_password: { get_param: cluster_password}
