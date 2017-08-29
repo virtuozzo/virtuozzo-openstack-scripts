@@ -129,14 +129,15 @@ resources:
     properties:
       inputs:
         - name: user_name
+        - name: file_name
       outputs:
         - name: id_rsa_pub
       group: script
       config: |
         #!/bin/bash
         su - ${user_name} << EOF > ${heat_outputs_path}.id_rsa_pub
-        test -f .ssh/id_rsa.pub || ssh-keygen -q -t rsa -N "" -f .ssh/id_rsa
-        cat .ssh/id_rsa.pub
+        test -f .ssh/${file_name}.pub || ssh-keygen -q -t rsa -N "" -f .ssh/${file_name}
+        cat .ssh/${file_name}.pub
         EOF
 
   key_add:
@@ -158,6 +159,7 @@ resources:
     properties:
       input_values:
         user_name: root
+        file_name: ansible
       config: { get_resource: key_gen }
       server: { get_attr: [first_server, server_id] }
 
