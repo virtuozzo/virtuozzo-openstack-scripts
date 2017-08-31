@@ -128,15 +128,15 @@ resources:
     properties:
       inputs:
         - name: user_name
-        - name: file_name
       outputs:
         - name: id_rsa_pub
       group: script
       config: |
         #!/bin/bash
         su - ${user_name} << EOF > ${heat_outputs_path}.id_rsa_pub
-        test -f .ssh/${file_name}.pub || ssh-keygen -q -t rsa -N "" -f .ssh/${file_name}
-        cat .ssh/${file_name}.pub
+        test -f .ssh/id_rsa.pub || ssh-keygen -q -t rsa -N "" -f .ssh/id_rsa
+        cat .ssh/id_rsa.pub >> .ssh/authorized_keys
+        cat .ssh/id_rsa.pub
         EOF
 
   key_add:
@@ -155,7 +155,6 @@ resources:
     properties:
       input_values:
         user_name: root
-        file_name: ansible
       config: { get_resource: key_gen }
       server: { get_attr: [first_server, server_id] }
 
@@ -169,7 +168,7 @@ resources:
       config: { get_resource: key_add }
       servers: { get_attr: [server_group, attributes, server_id] }
 
-  deploy_vzip_prepare:
+  deploy_vzip:
     type: OS::Heat::SoftwareConfig
     properties:
       inputs:
@@ -177,25 +176,13 @@ resources:
         - name: master_ip_address
         - name: host_names
         - name: ip_addresses
-      outputs:
-        - name: master_host
-        - name: host_names
-      group: script
-      config: { get_file: vzip_install_prepare.py }
-
-  deploy_vzip:
-    type: OS::Heat::SoftwareConfig
-    properties:
-      inputs:
-        - name: master_host
-        - name: host_names
         - name: vip_address
         - name: cluster_name
         - name: cluster_password
       outputs:
         - name: admin-openrc
       group: script
-      config: { get_file: vzip_install.sh }
+      config: { get_file: vzip_install.py }
 
   port_api:
     type: OS::Neutron::Port
@@ -205,7 +192,7 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: api_subnet_id }
 
-  do_deploy_vzip_prepare:
+  do_deploy_vzip:
     type: OS::Heat::SoftwareDeployment
     depends_on: do_key_add
     properties:
@@ -214,22 +201,11 @@ resources:
         master_ip_address: { get_attr: [first_server, ip_address] }
         host_names: { get_attr: [server_group, attributes, host_name] }
         ip_addresses: { get_attr: [server_group, attributes, ip_address] }
-      config: { get_resource: deploy_vzip_prepare }
-      server: { get_attr: [first_server, server_id] }
-
-  do_deploy_vzip:
-    type: OS::Heat::SoftwareDeployment
-    depends_on: do_deploy_vzip_prepare
-    properties:
-      input_values:
-        master_host: { get_attr: [do_deploy_vzip_prepare, master_host] }
-        host_names: { get_attr: [do_deploy_vzip_prepare, host_names] }
         vip_address: { get_attr: [port_api, fixed_ips, 0, ip_address] }
         cluster_name: { get_param: cluster_name }
         cluster_password: { get_param: cluster_password}
       config: { get_resource: deploy_vzip }
       server: { get_attr: [first_server, server_id] }
-
 
   server_group:
     type: OS::Heat::ResourceGroup
@@ -283,7 +259,7 @@ outputs:
     description: >
       This is a list of first ip addresses of the servers in the group
       for a specified network.
-    value: {get_attr: [first_server, networks, {get_param: storage_net_id}]}
+    value: {get_attr: [first_server, networks, {get_param: storage_net_id}, 0]}
   do_key_add_status:
     description: Status code of configuration execution.
     value: { get_attr: [do_key_add, deploy_status_code] }

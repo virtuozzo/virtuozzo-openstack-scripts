@@ -107,7 +107,7 @@ vstorage_cluster_password: "$cluster_password"
 EOF
 
 kolla-genpwd
-kolla-inventory gen --key /root/.ssh/ansible --control $host_names --network $host_names --compute $host_names --storage $master_host --monitoring $master_host -- myinventory
+kolla-inventory gen --key /root/.ssh/id_rsa --control $host_names --network $host_names --compute $host_names --storage $master_host --monitoring $master_host -- myinventory
 kolla-ansible -i myinventory bootstrap-servers
 kolla-ansible -i myinventory prechecks
 kolla-ansible -i myinventory deploy

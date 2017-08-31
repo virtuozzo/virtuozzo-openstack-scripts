@@ -105,19 +105,16 @@ resources:
             sed -i '/include=\/etc\/yum\/virtuozzo-excludes/d' /etc/yum.conf
             sed -i '/PasswordAuthentication no/d' /etc/ssh/sshd_config
 
-            cat > /etc/yum.repos.d/vz-platform-release.repo <<EOF
-            [vz-platform]
-            name=Virtuozzo Platform
-            #mirrorlist=http://repo.virtuozzo.com/vz-platform/mirrorlists/1.0/releases-os.mirrorlist
-            ##baseurl=http://repo.virtuozzo.com/vz-platform/releases/1.0/x86_64/os/
+            cat > /etc/yum.repos.d/vz-hci.repo <<EOF
+            [vz-hci]
+            name=Virtuozzo HCI
             baseurl=http://kojistorage.eng.sw.ru/mash/os-ocata-vz7-rtm/latest/x86_64/os/
-            priority=49
+            priority=40
             enabled=1
-            gpgcheck=1
-            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Virtuozzo-Platform-1
+            gpgcheck=0
             EOF
 
-            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client
+            yum -y install vstorage-metadata-server vstorage-chunk-server vstorage-client kolla-ansible
 
             echo cluster_password | passwd root --stdin
 
@@ -159,18 +156,34 @@ resources:
                 echo "Creating a new cluster 'cluster_name'...done"
             else
                 if ! vstorage -c cluster_name list-services -M | grep -q /vstorage/cluster_name-mds; then
-                    echo "Adding a new MDS to cluster 'cluster_name'..."
-                    vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
-                    echo "Adding a new MDS to cluster 'cluster_name'...done"
+                    ret=1
+                    set +e
+                    while [ "$ret" != "0" ]
+                    do
+                        echo "Adding a new MDS to cluster 'cluster_name'..."
+                        vstorage -c cluster_name make-mds -a storage_ipaddr -r /vstorage/cluster_name-mds
+                        ret=$?
+                        echo "Adding a new MDS to cluster 'cluster_name'...done (error=$ret)"
+                        sleep 1
+                    done
+                    set -e
                 fi
             fi
 
             systemctl start vstorage-mdsd.target
 
             if ! vstorage -c cluster_name list-services -C | grep -q $csdir/data; then
-                echo "Adding a new CS to cluster 'cluster_name'..."
-                vstorage -c cluster_name make-cs -r $csdir/data
-                echo "Adding a new CS to cluster 'cluster_name'...done"
+                ret=1
+                set +e
+                while [ "$ret" != "0" ]
+                do
+                    echo "Adding a new CS to cluster 'cluster_name'..."
+                    vstorage -c cluster_name make-cs -r $csdir/data
+                    ret=$?
+                    echo "Adding a new CS to cluster 'cluster_name'...done (error=$ret)"
+                    sleep 1
+                done
+                set -e
             fi
 
             systemctl start vstorage-csd.target
