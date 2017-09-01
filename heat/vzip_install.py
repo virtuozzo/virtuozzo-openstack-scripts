@@ -216,6 +216,7 @@ def main(argv=sys.argv):
 
     cmd = ['kolla-inventory', 'gen', '--key', '/root/.ssh/id_rsa'] + \
           ['--control'] + host_names[:3] + \
+          ['--network'] + host_names[:3] + \
           ['--compute'] + host_names[3:] + \
           ['--storage'] + host_names[:1] + \
           ['--monitoring'] + host_names[:1] + \
