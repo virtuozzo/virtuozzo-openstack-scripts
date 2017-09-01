@@ -179,6 +179,7 @@ resources:
         - name: vip_address
         - name: cluster_name
         - name: cluster_password
+        - name: keepaliveid
       outputs:
         - name: admin-openrc
       group: script
@@ -192,6 +193,12 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: api_subnet_id }
 
+  random:
+    type: OS::Heat::RandomString
+    properties:
+      length: 2
+      sequence: digits
+
   do_deploy_vzip:
     type: OS::Heat::SoftwareDeployment
     depends_on: do_key_add
@@ -204,6 +211,7 @@ resources:
         vip_address: { get_attr: [port_api, fixed_ips, 0, ip_address] }
         cluster_name: { get_param: cluster_name }
         cluster_password: { get_param: cluster_password}
+        keepaliveid: {get_resource: random}
       config: { get_resource: deploy_vzip }
       server: { get_attr: [first_server, server_id] }
 

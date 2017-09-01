@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 
-ENV_VARS = ['master_ip_address', 'master_host', 'ip_addresses', 'host_names', 'heat_outputs_path', 'cluster_name', 'cluster_password', 'vip_address']
+ENV_VARS = ['master_ip_address', 'master_host', 'ip_addresses', 'host_names', 'heat_outputs_path', 'cluster_name', 'cluster_password', 'vip_address', 'keepaliveid']
 KOLLA_GLOBALS = """
 ---
 #########################
@@ -49,7 +49,7 @@ tuninel_interface: "eth1"
 
 # Arbitrary number from 0..255 used for VRRP.
 # Must be unique within the current broadcast domain.
-#keepalived_virtual_router_id: "51"
+keepalived_virtual_router_id: "$keepaliveid"
 
 ###########################
 # Virtuozzo Storage options
@@ -204,6 +204,8 @@ def main(argv=sys.argv):
     kolla_globals = KOLLA_GLOBALS.replace('$cluster_name', env['cluster_name'])
     kolla_globals = kolla_globals.replace('$cluster_password', env['cluster_password'])
     kolla_globals = kolla_globals.replace('$vip_address', env['vip_address'])
+    kolla_globals = kolla_globals.replace('$keepaliveid', env['keepaliveid'])
+
     with open('/etc/kolla/globals.yml', 'w') as f:
         f.write(kolla_globals)
 
