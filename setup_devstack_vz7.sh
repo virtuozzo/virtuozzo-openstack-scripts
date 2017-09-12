@@ -309,9 +309,8 @@ ENABLED_SERVICES+=,n-cpu
 _EOF
 set -x
 fi
-
-clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/29/397829/8,refs/changes/66/397166/7
-clone_and_fix_openstack_project cinder refs/changes/16/453616/9,refs/changes/60/458560/1
+clone_and_fix_openstack_project nova refs/changes/14/214314/6,refs/changes/18/396218/9,refs/changes/66/397166/7
+clone_and_fix_openstack_project cinder refs/changes/16/453616/9
 fixup_configs_for_libvirt
 
 # workaround https://review.openstack.org/#/c/411405/
