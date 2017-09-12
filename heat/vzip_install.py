@@ -205,6 +205,7 @@ def main(argv=sys.argv):
     kolla_globals = KOLLA_GLOBALS.replace('$cluster_name', env['cluster_name'])
     kolla_globals = kolla_globals.replace('$cluster_password', env['cluster_password'])
     kolla_globals = kolla_globals.replace('$vip_address', env['vip_address'])
+    kolla_globals = kolla_globals.replace('$ext_vip_address', env['ext_vip_address'])
     kolla_globals = kolla_globals.replace('$keepaliveid', env['keepaliveid'])
 
     with open('/etc/kolla/globals.yml', 'w') as f:
