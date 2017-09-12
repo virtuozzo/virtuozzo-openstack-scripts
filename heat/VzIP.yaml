@@ -176,6 +176,7 @@ resources:
         - name: master_ip_address
         - name: host_names
         - name: ip_addresses
+        - name: ext_vip_address
         - name: vip_address
         - name: cluster_name
         - name: cluster_password
@@ -193,6 +194,15 @@ resources:
       fixed_ips:
         - subnet_id: { get_param: api_subnet_id }
 
+  ext_port:
+    type: OS::Neutron::Port
+    properties:
+      port_security_enabled: False
+      network_id: { get_param: external_net_id }
+      fixed_ips:
+        - subnet_id: { get_param: external_subnet_id }
+
+
   random:
     type: OS::Heat::RandomString
     properties:
@@ -208,6 +218,7 @@ resources:
         master_ip_address: { get_attr: [first_server, ip_address] }
         host_names: { get_attr: [server_group, attributes, host_name] }
         ip_addresses: { get_attr: [server_group, attributes, ip_address] }
+        ext_vip_address: { get_attr: [ext_port, fixed_ips, 0, ip_address] }
         vip_address: { get_attr: [port_api, fixed_ips, 0, ip_address] }
         cluster_name: { get_param: cluster_name }
         cluster_password: { get_param: cluster_password}

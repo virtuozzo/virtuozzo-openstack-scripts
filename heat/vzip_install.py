@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 
-ENV_VARS = ['master_ip_address', 'master_host', 'ip_addresses', 'host_names', 'heat_outputs_path', 'cluster_name', 'cluster_password', 'vip_address', 'keepaliveid']
+ENV_VARS = ['master_ip_address', 'master_host', 'ip_addresses', 'host_names', 'heat_outputs_path', 'cluster_name', 'cluster_password', 'vip_address', 'ext_vip_address' ,'keepaliveid']
 KOLLA_GLOBALS = """
 ---
 #########################
@@ -26,6 +26,7 @@ docker_namespace: "kolla"
 # This should be a VIP, an unused IP on your network that will float between
 # the hosts running keepalived for high availability.
 kolla_internal_vip_address: "$vip_address"
+kolla_external_vip_address: "$ext_vip_address"
 
 # This interface is what all your API services will be bound to by default.
 # This interface must contain an IPv4 address.
