@@ -188,6 +188,8 @@ resources:
 
             systemctl start vstorage-csd.target
 
+            modprobe vzevent
+
             wc_notify --data-binary '{"status": "SUCCESS"}'
 
           params:
